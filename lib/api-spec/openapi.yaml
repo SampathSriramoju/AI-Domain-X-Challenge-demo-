@@ -3,13 +3,15 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: MetroFlow AI offline traffic engineering advisory API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: metroflow
+    description: Deterministic offline traffic analysis operations
 paths:
   /healthz:
     get:
@@ -24,6 +26,75 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /metroflow/demo:
+    get:
+      operationId: getMetroflowDemo
+      tags: [metroflow]
+      summary: Get the synthetic corridor demo analysis
+      description: Returns a deterministic, explainable analysis for the Main Street corridor.
+      responses:
+        "200":
+          description: Complete demo analysis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MetroflowDemo"
+  /metroflow/upload:
+    post:
+      operationId: uploadMetroflowData
+      tags: [metroflow]
+      summary: Validate an uploaded traffic dataset
+      description: Validates a CSV-like traffic dataset and returns a safe preview.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TrafficUploadInput"
+      responses:
+        "200":
+          description: Dataset validation result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadValidation"
+  /metroflow/simulate:
+    post:
+      operationId: simulateMetroflow
+      tags: [metroflow]
+      summary: Run a demand stress-test simulation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SimulationInput"
+      responses:
+        "200":
+          description: Simulated before and after performance
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SimulationResult"
+  /metroflow/rationale:
+    post:
+      operationId: generateMetroflowRationale
+      tags: [metroflow]
+      summary: Generate a constrained engineering explanation
+      description: Produces deterministic fallback copy from calculated metrics; an AI provider may be added later.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RationaleInput"
+      responses:
+        "200":
+          description: Engineering rationale
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RationaleResult"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +104,248 @@ components:
           type: string
       required:
         - status
+    TrafficUploadInput:
+      type: object
+      required: [filename, rows]
+      properties:
+        filename:
+          type: string
+        rows:
+          type: number
+          minimum: 0
+        hasRequiredColumns:
+          type: boolean
+          default: true
+    UploadValidation:
+      type: object
+      required: [status, rowsProcessed, warnings, errors, preview]
+      properties:
+        status:
+          type: string
+          enum: [valid, warning, error]
+        rowsProcessed:
+          type: number
+        warnings:
+          type: array
+          items:
+            type: string
+        errors:
+          type: array
+          items:
+            type: string
+        preview:
+          type: array
+          items:
+            $ref: "#/components/schemas/TrafficPreviewRow"
+    TrafficPreviewRow:
+      type: object
+      required: [timestamp, intersectionId, approach, volume]
+      properties:
+        timestamp:
+          type: string
+        intersectionId:
+          type: string
+        approach:
+          type: string
+        volume:
+          type: number
+    SimulationInput:
+      type: object
+      required: [demandMultiplier]
+      properties:
+        demandMultiplier:
+          type: number
+          minimum: 0.7
+          maximum: 1.3
+    SimulationResult:
+      type: object
+      required: [demandMultiplier, baseline, recommended, limitations]
+      properties:
+        demandMultiplier:
+          type: number
+        baseline:
+          $ref: "#/components/schemas/SimulationMetrics"
+        recommended:
+          $ref: "#/components/schemas/SimulationMetrics"
+        limitations:
+          type: string
+    SimulationMetrics:
+      type: object
+      required: [delay, queue, los, throughput, reduction]
+      properties:
+        delay:
+          type: number
+        queue:
+          type: number
+        los:
+          type: string
+        throughput:
+          type: number
+        reduction:
+          type: number
+    RationaleInput:
+      type: object
+      required: [intersectionId, peakWindow, vcRatio, cycleBefore, cycleAfter, phaseBefore, phaseAfter, delayBefore, delayAfter, safetyStatus]
+      properties:
+        intersectionId:
+          type: string
+        peakWindow:
+          type: string
+        vcRatio:
+          type: number
+        cycleBefore:
+          type: number
+        cycleAfter:
+          type: number
+        phaseBefore:
+          type: number
+        phaseAfter:
+          type: number
+        delayBefore:
+          type: number
+        delayAfter:
+          type: number
+        safetyStatus:
+          type: string
+    RationaleResult:
+      type: object
+      required: [source, markdown]
+      properties:
+        source:
+          type: string
+          enum: [deterministic-fallback, ai]
+        markdown:
+          type: string
+    MetroflowDemo:
+      type: object
+      required: [project, kpis, hourlyVolume, intersections, phases, assumptions, activities]
+      properties:
+        project:
+          $ref: "#/components/schemas/ProjectSummary"
+        kpis:
+          $ref: "#/components/schemas/DemoKpis"
+        hourlyVolume:
+          type: array
+          items:
+            $ref: "#/components/schemas/HourlyVolume"
+        intersections:
+          type: array
+          items:
+            $ref: "#/components/schemas/IntersectionAnalysis"
+        phases:
+          type: array
+          items:
+            $ref: "#/components/schemas/PhaseTiming"
+        assumptions:
+          type: array
+          items:
+            type: string
+        activities:
+          type: array
+          items:
+            $ref: "#/components/schemas/Activity"
+    ProjectSummary:
+      type: object
+      required: [name, corridor, datasetLabel, updatedAt]
+      properties:
+        name:
+          type: string
+        corridor:
+          type: string
+        datasetLabel:
+          type: string
+        updatedAt:
+          type: string
+    DemoKpis:
+      type: object
+      required: [intersections, peakWindow, worstVc, worstIntersection, averageDelay, recommendationCount]
+      properties:
+        intersections:
+          type: number
+        peakWindow:
+          type: string
+        worstVc:
+          type: number
+        worstIntersection:
+          type: string
+        averageDelay:
+          type: number
+        recommendationCount:
+          type: number
+    HourlyVolume:
+      type: object
+      required: [hour, volume, peak]
+      properties:
+        hour:
+          type: string
+        volume:
+          type: number
+        peak:
+          type: string
+          enum: [am, midday, pm, off]
+    IntersectionAnalysis:
+      type: object
+      required: [id, name, order, vc, los, delay, queue, lanes, demand, capacity, approach, lat, lng, status]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        order:
+          type: number
+        vc:
+          type: number
+        los:
+          type: string
+        delay:
+          type: number
+        queue:
+          type: number
+        lanes:
+          type: number
+        demand:
+          type: number
+        capacity:
+          type: number
+        approach:
+          type: string
+        lat:
+          type: number
+        lng:
+          type: number
+        status:
+          type: string
+          enum: [critical, watch, stable]
+    PhaseTiming:
+      type: object
+      required: [phase, movement, currentGreen, recommendedGreen, minPed, yellow, status]
+      properties:
+        phase:
+          type: string
+        movement:
+          type: string
+        currentGreen:
+          type: number
+        recommendedGreen:
+          type: number
+        minPed:
+          type: number
+        yellow:
+          type: number
+        status:
+          type: string
+          enum: [adjusted, locked, held]
+    Activity:
+      type: object
+      required: [title, detail, time, tone]
+      properties:
+        title:
+          type: string
+        detail:
+          type: string
+        time:
+          type: string
+        tone:
+          type: string
+          enum: [success, warning, info]
 

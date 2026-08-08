@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "MetroFlow AI"
+description = "An offline urban traffic analytics workspace for municipal engineers to analyze congestion, inspect corridor bottlenecks, generate safety-checked signal timing recommendations, simulate before-and-after impact, and export advisory reports."
+version = "1.0.0"
+id = "artifacts/metroflow-ai"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 19562
+
+[services.development]
+run = "pnpm --filter @workspace/metroflow-ai run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/metroflow-ai", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/metroflow-ai/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19562"
+BASE_PATH = "/"

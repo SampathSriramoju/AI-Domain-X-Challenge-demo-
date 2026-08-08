@@ -1,0 +1,1032 @@
+
+--- PAGE 1 ---
+MetroFlow AI
+Urban Traffic Congestion Analyzer & Offline Signal Timing Recommendation Platform
+Document Type: Product Requirements
+Document (PRD)
+Target Domain: Problem Statement #18
+(Smart Infrastructure)
+Author: Senior Product Manager &
+Smart City Lead
+Version: 1.0 (Hackathon MVP Scope)
+Status: Approved for System Design
+Date: August 2026
+1. Executive Summary
+MetroFlow AI is an offline urban traffic analytics and signal timing optimization platform designed specifically for municipal
+traffic engineers, smart city consultants, and urban transportation authorities. Urban intersections frequently suffer from
+severe delay and congestion caused by outdated, static signal timing plans that fail to reflect modern traffic fluctuations.
+MetroFlow AI ingests historical traffic volume data, road metadata, and incident logs to automatically detect bottleneck
+patterns, compute optimal offline green-split and offset adjustments using queuing theory, and generate simulated "before vs.
+after" performance metrics alongside plain-language engineering rationales. By replacing slow, manual signal retiming
+workflows with an intelligent advisory system, MetroFlow AI reduces corridor travel times, decreases vehicle emissions, and
+optimizes municipal infrastructure without requiring real-time signal control hardware modifications.
+2. Product Vision
+To become the global standard for data-driven municipal traffic management, empowering every city to eliminate preventable
+gridlock through intelligent, explainable, and accessible signal timing optimization.
+3. Mission Statement
+Deliver an offline traffic analytics platform that transforms historical vehicle count data into actionable, safe, and simulated
+signal timing recommendations, enabling traffic engineers to optimize corridor efficiency within minutes rather than months.
+4. Problem Statement
+Urban traffic congestion costs cities billions annually in lost productivity, excess fuel consumption, and heightened carbon
+emissions. Municipal traffic signal timing plans are traditionally updated only once every 3 to 5 years due to the high cost and
+manual labor required for traffic counting, micro-simulation setup (e.g., VISSIM, Synchro), and manual plan generation.
+Consequently, signal controllers run static timing programs that do not match current traffic flows, causing artificial gridlock,
+excessive vehicle idling, and uncoordinated corridor progression. Municipalities require an offline decision-support tool that
+ingests available volume data, identifies peak bottleneck patterns, and recommends optimized green split schedules
+accompanied by explainable metrics and safety guardrails.
+5. Goals
+Automate Bottleneck Detection: Reduce the time required to identify peak traffic congestion windows and corridor
+bottlenecks from weeks to under 30 seconds.
+Optimize Green Split & Coordination: Generate offline signal timing plans (cycle lengths, green splits, and offsets) that
+yield an estimated 12%–25% reduction in average intersection delay based on historical flow data.
+Explainable Recommendations: Provide plain-language narrative explanations powered by AI for every recommended
+signal change to build engineer trust.
+• 
+• 
+• 
+MetroFlow AI — Product Requirements Document (PRD)
+Page 1 of 16
+
+--- PAGE 2 ---
+Low-Barrier Simulation: Supply lightweight "before vs. after" queue and delay simulation estimates without requiring
+complex, proprietary micro-simulation software setups.
+Ensure Zero Operational Risk: Restrict functionality strictly to offline recommendations and exportable plans, avoiding
+direct signal controller override or safety hazard creation.
+6. Non-Goals
+No Real-Time Signal Control: The system will NOT directly actuate or interface with live traffic signal controllers in real
+time.
+No Autonomous Enforcement: The platform will NOT perform automated speed/red-light enforcement, vehicle
+identification, or driver profiling.
+No Full Physics Micro-Simulation Engine Replacement: The system will NOT replace heavy microscopic traffic
+simulation platforms like VISSIM or AIMSUN for complex civil engineering structural redesigns; it uses lightweight queuing
+models for timing validation.
+No Hardware Manufacturing: The solution is entirely software-based and will not produce custom sensor hardware.
+7. Target Users
+Primary: Municipal Traffic Engineers, Traffic Operations Center (TOC) Managers.
+Secondary: Smart City Consultants, Transportation Planning Agencies, Regional Councils of Governments (COGs).
+Tertiary: Civil Engineering Contractors, Municipal Operations Directors.
+8. User Personas
+Persona 1: Senior Traffic Engineer (Primary)
+Name: Marcus Vance, PE
+Role: 
+Senior Traffic Operations Engineer, City
+Department of Transportation
+Demographics: Age 44, M.S. in Civil Engineering, 18
+years of experience.
+Goals: Clear corridor bottlenecks, lower intersection
+level-of-service (LOS) delay grades, defend signal
+retiming decisions to city council.
+Pain Points: Synchro software takes weeks to model
+and calibrate; current static timing plans are 4 years old;
+lacks time to manually parse raw loop-detector CSV
+logs.
+Persona 2: Smart City Consultant (Secondary)
+Name: Elena Rostova
+Role: Mobility Practice Lead, Urban Infrastructure
+Advisory
+Demographics: Age 35, M.S. in Urban Planning & Data
+Science, 10 years of experience.
+Goals: 
+Deliver data-backed signal optimization
+proposals to municipal clients quickly; demonstrate
+quantifiable ROI and emissions reduction.
+Pain Points: Municipal traffic data is fragmented; clients
+lack budget for expensive real-time adaptive signal
+hardware (e.g., SCATS/SCOOT); needs clear visual
+reporting for non-technical city leadership.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+MetroFlow AI — Product Requirements Document (PRD)
+Page 2 of 16
+
+--- PAGE 3 ---
+9. Stakeholder Analysis
+10. Pain Points
+Static Timing Inflexibility: Intersections run static 24-hour plans that fail during unannounced volume surges or seasonal
+shifts.
+Data Overwhelm vs. Action Gap: Cities collect millions of vehicle count data points from loop detectors and cameras,
+but lack tools to automatically synthesize this into timing parameters.
+High Retiming Costs: Traditional retiming projects cost $3,000–$5,000 per intersection and take 6–12 months to execute
+manually.
+Black-Box AI Skepticism: Traffic engineers reject AI systems that provide raw numbers without engineering rationale or
+explicit mathematical assumptions.
+Complex Modeling Overhead: Existing simulation software requires specialized expertise, long render times, and
+manual input parameter mapping.
+11. Existing Workflow
+Manual Data Collection: Portable pneumatic tubes or historical inductive loop logs record vehicle counts over a 7-day
+period.
+Data Sanitization: Engineers manually clean corrupted CSVs in Excel.
+Model Construction: Data is manually imported and mapped into traditional traffic software (e.g., Synchro/HCS).
+Manual Calibration: Engineer manually adjusts phase splits, yellow intervals, and all-red clearance times over several
+weeks.
+Field Deployment: Approved parameters are manually keyed into physical signal controller cabinets on site.
+Post-Evaluation: Minimal or no post-implementation validation occurs due to budget constraints.
+12. Proposed Workflow
+Data Ingestion: User uploads historical intersection volume logs (CSV/JSON), road metadata (lanes, speed limits, turning
+ratios), and optional incident reports into MetroFlow AI.
+Automated Analytics: Platform automatically parses counts, identifies peak hourly patterns, computes volume-to-
+capacity (V/C) ratios, and highlights specific corridor bottlenecks.
+Stakeholder Group
+Interest
+Level
+Power /
+Influence
+Core Needs & Expectations
+Municipal Traffic
+Engineers
+High
+High
+Accuracy, adherence to MUTCD standards, exportable timing sheets,
+clear simulation assumptions.
+City DOT Leadership
+High
+High
+Congestion reduction, cost efficiency, public safety compliance, clear
+reporting metrics.
+Commuter Public &
+Transit
+High
+Low
+Reduced travel time, fewer stops, predictable signal progression, lower
+fuel consumption.
+Smart City
+Consultants
+High
+Medium
+Rapid analysis turnaround, white-label export capabilities, multi-
+intersection scenario modeling.
+IT & GIS Departments
+Medium
+Medium
+Easy CSV/JSON data ingestion, secure web access, zero live
+infrastructure integration risks.
+• 
+• 
+• 
+• 
+• 
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+1. 
+2. 
+MetroFlow AI — Product Requirements Document (PRD)
+Page 3 of 16
+
+--- PAGE 4 ---
+Optimization Engine Execution: Web-based queuing model calculates optimized cycle length, green splits, and offset
+values tailored to peak demand periods.
+Simulated Validation: System runs an instant "before vs. after" simulation displaying predicted reductions in queue
+length, average delay (seconds/vehicle), and Level of Service (LOS) grade improvements.
+AI Rationale & Plan Export: System generates a structured timing recommendation sheet accompanied by an AI-
+generated engineering narrative explaining the changes and explicitly stating underlying assumptions.
+Controller Cabinet Update: Traffic engineer reviews, approves, and downloads standard timing controller parameters for
+scheduled field programming.
+13. User Stories (Minimum 30)
+User Story Index: The following 30 comprehensive user stories cover end-to-end functionality across Data Ingestion,
+Congestion Analytics, Signal Optimization, Simulation, and AI Rationale Reporting. 
+3. 
+4. 
+5. 
+6. 
+MetroFlow AI — Product Requirements Document (PRD)
+Page 4 of 16
+
+--- PAGE 5 ---
+ID
+User Role
+Requirement ("I want to...")
+Benefit ("So that...")
+US-01
+Traffic Engineer
+upload intersection vehicle count data in
+standard CSV format
+I do not have to reformat raw loop detector
+outputs manually.
+US-02
+Smart City Consultant
+define road metadata (number of lanes,
+speed limits, storage bay lengths)
+the analyzer accurately calculates
+intersection capacity.
+US-03
+Analyst
+input turning movement counts (Left,
+Through, Right) for each approach
+phase green time distribution reflects real
+movement demands.
+US-04
+Traffic Engineer
+attach historical incident logs (accidents,
+roadwork)
+non-recurrent congestion anomalies are
+filtered out from baseline timing.
+US-05
+System Admin
+automatically validate uploaded dataset
+formats
+corrupt or missing timestamp records are
+flagged prior to analysis.
+US-06
+Analyst
+save multi-intersection corridor datasets into
+project folders
+I can analyze arterial networks as a unified
+system.
+US-07
+Traffic Engineer
+view a heat map of intersection delay across
+different times of day
+I can rapidly identify peak congestion
+windows.
+US-08
+TOC Manager
+automatically rank top corridor bottlenecks by
+V/C ratio
+I can prioritize retiming intervention budgets.
+US-09
+Analyst
+inspect directional traffic flow imbalances
+during rush hours
+asymmetric split plans can be generated.
+US-10
+Smart City Consultant
+compare traffic volumes across days of the
+week
+I can determine whether separate weekend
+vs. weekday timing plans are needed.
+US-11
+Traffic Engineer
+view queue spillback risk scores on short
+turn lanes
+blockage of through-lanes can be prevented.
+US-12
+Executive
+view aggregate city-wide congestion trend
+metrics
+I can report smart city progress to municipal
+leadership.
+US-13
+Traffic Engineer
+calculate optimal green split distributions
+based on approach saturation
+green time allocation matches real demand.
+US-14
+Senior Engineer
+enforce minimum pedestrian crossing time
+rules
+pedestrian safety is never compromised.
+US-15
+Traffic Engineer
+suggest signal coordination offsets across
+sequential corridor intersections
+green-wave platooning is maximized.
+US-16
+Analyst
+recommend optimal cycle lengths (e.g., 90s,
+120s, 150s) for peak bands
+cycle overhead is minimized without causing
+overflow queues.
+US-17
+Traffic Engineer
+manually override and adjust suggested
+green splits
+I can incorporate local field knowledge into
+the plan.
+US-18
+Consultant
+lock specific phase parameters while re-
+optimizing others
+transit or railroad preemption phases remain
+unchanged.
+US-19
+Traffic Engineer
+view a "before vs. after" comparative table of
+average delay per vehicle
+I can evaluate the performance gain of the
+proposed plan.
+US-20
+Analyst
+view simulated queue length reductions in
+meters/feet per lane
+I can verify queues will not spill into upstream
+intersections.
+US-21
+TOC Manager
+statutory reporting criteria are met.
+MetroFlow AI — Product Requirements Document (PRD)
+Page 5 of 16
+
+--- PAGE 6 ---
+14. User Journey
+Landing & Authentication: Marcus logs into MetroFlow AI via secure municipal SSO.
+Project Setup & Data Upload: Marcus creates project "Main Street Corridor Retiming" and uploads a 7-day intersection
+traffic volume CSV alongside a road geometry metadata file.
+Data Verification & Parsing: System parses 100,000+ vehicle counts, verifies data integrity, and generates a visual
+baseline corridor overview showing peak congestion occurring weekdays between 07:45 AM - 09:15 AM.
+Bottleneck Identification: System flags Intersection #4 (Main St & 5th Ave) as the primary bottleneck with a Volume-to-
+Capacity (V/C) ratio of 1.12 (LOS F).
+Optimization Generation: Marcus clicks "Generate Offline Optimization Schedule." The system processes queuing
+models and presents a recommended 120-second cycle plan with adjusted green splits favoring the heavily saturated
+eastbound approach.
+Simulation Evaluation: System renders side-by-side "before vs. after" metrics: projected average delay drops from 68.4s
+to 42.1s per vehicle (LOS E to LOS D improvement), and peak queue length drops by 35%.
+AI Rationale Inspection: Marcus expands the AI Rationale panel, reading: "Green time for Phase 2 (Eastbound Through)
+increased by 14 seconds to accommodate morning rush surge observed between 08:00 AM - 08:45 AM. Minimum
+pedestrian clearance times (Phase 4/8) preserved at 18 seconds."
+Export & Field Execution: Satisfied with the results, Marcus exports the NEMA-compliant timing sheet and executive
+PDF report for field implementation.
+ID
+User Role
+Requirement ("I want to...")
+Benefit ("So that...")
+see expected Level of Service (LOS A-F)
+transitions for each approach
+US-22
+Environmental Analyst
+estimate fuel savings and CO2 emission
+reductions
+sustainability metrics can be tracked.
+US-23
+Senior Engineer
+view all underlying mathematical
+assumptions used in queuing models
+I can validate simulation integrity.
+US-24
+Analyst
+run sensitivity stress tests (+10% traffic
+surge) on proposed plans
+I can verify plan robustness under
+unpredictable demand.
+US-25
+Traffic Engineer
+receive an AI-generated plain-language
+summary of timing adjustments
+I can quickly understand optimization logic.
+US-26
+Consultant
+export official PDF signal retiming reports
+I can submit professional deliverables directly
+to municipal clients.
+US-27
+Operations Lead
+export controller-ready timing sheets (in CSV/
+NEMA format)
+technicians can easily program physical
+hardware on site.
+US-28
+Senior Engineer
+cite relevant traffic engineering standards
+(HCM/MUTCD) in summaries
+compliance is transparent and defensible.
+US-29
+Non-technical Manager
+view executive summary narratives stripped
+of complex jargon
+I can brief non-technical city council
+members easily.
+US-30
+System Auditor
+verify explicit offline disclaimers on every
+export
+legal safety liability guardrails are strictly
+enforced.
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+MetroFlow AI — Product Requirements Document (PRD)
+Page 6 of 16
+
+--- PAGE 7 ---
+15. Functional Requirements
+Module A: Data Ingestion & Processing
+FR-A01: Ingest structured CSV/JSON file uploads containing hourly or minute-by-minute vehicle counts per intersection
+approach.
+FR-A02: Support manual metadata entry/editing for lane configurations, speed limits, free-flow speeds, and turning
+movement splits (Left, Through, Right).
+FR-A03: Detect and flag corrupted, missing, or outlier data points with options for interpolation or exclusion.
+FR-A04: Support optional ingestion of incident logs (accidents, construction events) tagged by timestamp and location.
+Module B: Congestion Analytics Engine
+FR-B01: Compute Volume-to-Capacity (V/C) ratios for each approach and total intersection per time interval.
+FR-B02: Identify peak congestion windows (AM Peak, Midday, PM Peak) automatically using temporal cluster analysis.
+FR-B03: Assign Highway Capacity Manual (HCM) Level of Service (LOS) letters (A through F) based on calculated control
+delay.
+FR-B04: Map multi-intersection bottlenecks along defined linear corridors.
+Module C: Signal Timing Recommendation Engine
+FR-C01: Calculate optimal green split distribution per signal phase based on Webster’s method and queue saturation
+balances.
+FR-C02: Calculate recommended total cycle length constrained within user-defined min/max bounds (e.g., 60s to 180s).
+FR-C03: Calculate arterial coordination offset values across adjacent intersections to establish green wave progression
+velocity.
+FR-C04: Enforce hard safety lower-bounds for minimum green, yellow change, and red clearance intervals based on road
+geometry and pedestrian walk speeds.
+Module D: Queuing Simulation & Validation
+FR-D01: Simulate "before vs. after" queue length accumulation and dissipation using M/M/1 and Webster queuing
+formulation logic.
+FR-D02: Calculate predicted reduction in average control delay per vehicle (sec/veh).
+FR-D03: Estimate environmental impact delta (fuel consumption in gallons saved, CO2 emission reduction in kilograms).
+FR-D04: Display interactive slider controls allowing users to perform "what-if" traffic volume variation stress testing (+/-
+30%).
+Module E: AI Rationale & Export Suite
+FR-E01: Integrate Azure OpenAI service to generate natural-language explanations for all timing adjustments, detailing
+cause-and-effect drivers.
+FR-E02: Render explicit listing of all simulation parameters, formulas, and assumptions used during calculation.
+FR-E03: Generate downloadable NEMA/170/2070 controller-formatted signal timing sheets (CSV format).
+FR-E04: Generate branded, client-ready executive summary reports in PDF format.
+16. Non-Functional Requirements
+Performance: Processing and timing calculation for up to 20 corridor intersections must complete in under 5 seconds. AI
+narrative generation must return in under 3 seconds.
+Accuracy & Reliability: Queuing model delay estimations must align within +/- 10% variance against classical Highway
+Capacity Manual (HCM) equations under stable flow assumptions.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+MetroFlow AI — Product Requirements Document (PRD)
+Page 7 of 16
+
+--- PAGE 8 ---
+Security: Role-Based Access Control (RBAC) ensuring data isolation between different municipal accounts. All data in
+transit encrypted via TLS 1.3; data at rest encrypted via AES-256.
+Usability: System must achieve a System Usability Scale (SUS) score above 80. Intuitive design allowing a trained traffic
+analyst to complete an end-to-end corridor retiming workflow within 5 minutes.
+Interpretability: Zero "black box" decisions; every numerical output must link to a readable mathematical formula or
+explicit AI rationale.
+Availability: System web portal uptime availability target of 99.9%.
+17. MVP Scope
+The Hackathon MVP focuses strictly on providing core offline analytics, signal retiming recommendation, simple simulation,
+and AI rationale generation for a multi-intersection corridor:
+CSV data ingestion for vehicle volume counts and basic road metadata.
+Peak congestion pattern and bottleneck identification engine.
+Offline green split and cycle length optimization model.
+Simple queuing theory-based "before vs. after" delay and queue length simulation.
+Azure OpenAI powered plain-language rationale generator.
+Interactive Streamlit/Web dashboard displaying metrics, charts, and downloadable PDF/CSV reports.
+18. Future Scope
+Real-Time API Connectors: Automated data ingestion from city SCADA systems, camera feeds, or cellular probe data
+(e.g., INRIX/TomTom).
+Transit Signal Priority (TSP) Integration: Dedicated optimization modules giving priority green windows to scheduled
+municipal buses.
+V2X Communication: Exporting recommended timing plans via SPaT (Signal Phase and Timing) protocols for connected
+autonomous vehicles.
+Multi-Modal Analytics: Incorporating dedicated bicycle and pedestrian volume counts into dynamic phase allocation
+algorithms.
+Deep Reinforcement Learning Simulator: Integrating SUMO (Simulation of Urban MObility) for heavy microscopic
+agent-based simulation validation.
+19. Feature Prioritization (MoSCoW Matrix)
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+Category
+MUST HAVE (MVP)
+SHOULD HAVE
+COULD HAVE
+WON'T HAVE
+Data
+Ingestion
+CSV Upload, Basic Metadata
+Entry
+Batch Ingestion, Anomaly
+Filter
+GIS Shapefile Auto-
+import
+Direct Controller SCADA
+Stream
+Analytics
+Peak Window ID, V/C Ratio
+Turning Movement
+Asymmetry
+Weather Impact
+Correlation
+Speed Enforcement
+Profiling
+Optimization
+Webster Green Splits, Cycle
+Bounds
+Corridor Offset
+Coordination
+Day-of-Week Schedule
+Banding
+Live Closed-Loop
+Actuation
+Simulation
+Queuing Theory Delay &
+Queue
+Volume Surge Stress Test
+Slider
+Fuel & CO2 Calculator
+Full Micro-Simulation
+Engine
+AI &
+Reporting
+LLM Rationale, PDF/CSV
+Export
+Custom Municipal
+Branding
+Audio Summary
+Generation
+Guaranteed Delay
+Warranties
+MetroFlow AI — Product Requirements Document (PRD)
+Page 8 of 16
+
+--- PAGE 9 ---
+20. Success Metrics
+Time-to-Insight: Reduction in time required to generate a retiming plan from 14 days (manual baseline) to < 5 minutes.
+Simulated Delay Reduction: Average predicted corridor vehicle delay reduction of ≥ 15%.
+Engineering Trust Score: ≥ 85% positive rating from traffic engineers regarding the accuracy and clarity of AI rationales.
+Data Processing Speed: Parsing and processing 1,000,000 hourly traffic records in < 10 seconds.
+Export Utilization: > 90% of completed analysis sessions resulting in a downloaded controller timing sheet or PDF
+executive summary.
+21. Key Performance Indicators (KPIs)
+22. Risks & Mitigations
+23. Assumptions
+Historical volume count inputs provided by users reflect underlying demand patterns with reasonable statistical
+consistency.
+Intersections operate under standard NEMA or fixed-stage phasing sequences that can be mapped into digital timing
+templates.
+Driver behavior (saturation flow rates, acceleration rates) conforms to baseline Highway Capacity Manual standard
+constants unless customized by the user.
+Municipal users possess authorization to modify physical controller timing parameters following offline analysis.
+• 
+• 
+• 
+• 
+• 
+KPI Category
+Metric Name
+Target Benchmark
+Measurement Method
+Performance
+Corridor Optimization Processing Time
+< 5.0 Seconds
+System log timestamps
+Model Quality
+Simulated Queue Reduction Accuracy
++/- 8% vs HCM formulas
+Queuing model benchmark suite
+User Value
+Estimated Vehicle Delay Reduction
+12% - 25% per corridor
+Before vs. After simulation engine
+AI Reliability
+Rationale Relevancy & Safety Score
+100% MUTCD Safety Compliance
+Automated evaluation guardrails
+Adoption
+Monthly Active Projects per User
+≥ 4 Corridors / Month
+Analytics platform telemetry
+Risk Factor
+Impact
+Likelihood
+Mitigation Strategy
+Incorrect Field
+Implementation
+High
+Low
+Include bold disclaimers, enforce mandatory human engineer sign-off, auto-
+check clearance intervals.
+Inaccurate Input Data
+High
+Medium
+Implement data sanity checks upon upload (flag implausible volumes
+exceeding saturation flow).
+Black-Box AI
+Hallucination
+Medium
+Medium
+Use structured prompt templates; constrain LLM to explain computed math
+rather than calculate numbers.
+User Resistance to AI
+Medium
+High
+Frame product strictly as an "Engineering Advisory Co-pilot" that augments
+human expertise.
+• 
+• 
+• 
+• 
+MetroFlow AI — Product Requirements Document (PRD)
+Page 9 of 16
+
+--- PAGE 10 ---
+24. Constraints & Guardrails
+Mandatory Operating Guardrails:
+Offline Only: The platform MUST NOT issue direct control commands or interface with live signal infrastructure; all
+outputs are advisory recommendations.
+Explicit Assumptions: All simulation outputs MUST clearly display mathematical models, queuing formulas, and
+assumed variables used during computation.
+No Guaranteed Claims: The system MUST explicitly avoid marketing or reporting claims that guarantee specific
+real-world travel time reductions, attributing all numbers to simulated estimates.
+Safety Primacy: Minimum pedestrian walk times and clearance intervals MUST serve as non-negotiable hard
+constraints in all optimization routines.
+25. Acceptance Criteria
+AC-01: System successfully ingests valid multi-intersection CSV traffic count logs and displays clean volume charts
+without crashing.
+AC-02: System correctly identifies the peak 1-hour traffic volume window for any given 24-hour dataset.
+AC-03: Calculated green splits sum exactly to the total defined cycle length minus clearance lost times.
+AC-04: Recommended green time for any phase never drops below user-defined minimum pedestrian crossing limits.
+AC-05: Simulation module calculates and displays both baseline and optimized average delay (sec/veh) and queue
+lengths (meters) side-by-side.
+AC-06: Azure OpenAI integration returns a coherent 2-3 paragraph plain-language narrative explaining recommended
+green split adjustments.
+AC-07: Controller timing export generates a valid, properly formatted CSV file containing phase timing parameters.
+26. Competitive Advantage
+Traditional incumbents in the traffic engineering space fall into two extremes: expensive, ultra-complex microscopic simulation
+suites (e.g., VISSIM, Synchro) that require weeks of manual setup, or expensive, real-time adaptive signal hardware systems
+(e.g., SCATS, SCOOT) requiring millions in hardware overhauls. MetroFlow AI bridges this gap by providing an instant, cloud-
+native, offline advisory platform that ingests existing volume data, optimizes timing plans via mathematical queuing models,
+validates results through lightweight simulation, and provides explainable AI rationales—delivering 80% of the value of high-
+end tools at 5% of the time and cost.
+27. Product Differentiators
+AI-Powered Plain-Language Explanations: Converts complex mathematical split adjustments into executive-ready
+narratives that build immediate trust with engineers and city officials.
+Zero Hardware Dependency: Works entirely offline with existing historical count data; requires zero capital expenditure
+on IoT road sensors or new controllers.
+Instant Queuing Simulation: Eliminates the multi-week model calibration process required by traditional micro-simulators
+through automated mathematical queuing validation.
+Built-In Safety Guardrails: Hardcodes statutory safety bounds (MUTCD minimum walk times) into the core optimization
+algorithm so recommendations are legally and operationally sound.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+MetroFlow AI — Product Requirements Document (PRD)
+Page 10 of 16
+
+--- PAGE 11 ---
+28. Business Value
+Municipal Cost Reduction: Reduces signal retiming project costs from $4,000/intersection to under $300/intersection,
+allowing cities to retime corridors annually rather than every 5 years.
+Economic Productivity Gains: Reducing corridor travel delay by 15% recovers thousands of lost commuter hours daily,
+supporting regional economic activity.
+Environmental Impact: Decreased idling at mis-timed red lights directly cuts urban fuel waste and greenhouse gas
+emissions, aiding municipal climate action targets.
+Streamlined Advisory Workflows: Enables engineering consulting firms to triple their project throughput without adding
+headcount.
+29. Commercialization Potential
+SaaS Subscription Model: Tiered annual software subscription for municipal DOTs based on the number of managed
+intersections (e.g., Small City: $10,000/yr; Major Metro: $75,000/yr).
+Consulting Agency Enterprise Tier: Tier-1 engineering consultants (e.g., AECOM, WSP, Jacobs) purchase seat-based
+licenses for client project delivery.
+Freemium Acquisition: Free single-intersection analysis tier to drive bottom-up adoption among junior traffic analysts and
+academic researchers.
+System Integrator Partnerships: Partnering with traffic cabinet vendors (e.g., Econolite, Siemens Mobility) to pre-load
+MetroFlow AI offline analysis suites as value-add software packages.
+30. Why Judges Would Choose This Product Over Others
+Direct Problem Alignment: Solves an actual, expensive municipal pain point (static signal retiming) using a realistic,
+constraint-aware offline methodology.
+Responsible AI Application: Utilizes LLMs where they excel—converting structured numerical analytical results into
+explainable, clear narrative reports—rather than trusting the LLM to perform mathematical calculations.
+Strict Compliance with Constraints: Meticulously respects every guardrail specified in the problem statement (offline
+advisory only, explicit simulation assumptions, zero guaranteed claims).
+Immediate ROI & Feasibility: Requires zero real-world infrastructure deployment risk, making it immediately usable by
+any city DOT tomorrow with their existing CSV data.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+1. 
+2. 
+3. 
+4. 
+MetroFlow AI — Product Requirements Document (PRD)
+Page 11 of 16
+
+--- PAGE 12 ---
+Complete Navigation Flow
+[ Authentication / Login ]
+            │
+            ▼
+[ Dashboard / Project Overview ]
+            │
+            ├──► [ Project Setup & Data Ingestion ]
+            │         ├── Upload CSV Counts
+            │         ├── Define Geometry & Lanes
+            │         └── Attach Incident Logs
+            │
+            ├──► [ Congestion & Bottleneck Analyzer ]
+            │         ├── Peak Window Identification
+            │         ├── V/C Ratio Corridor Heatmap
+            │         └── LOS Delay Distribution
+            │
+            ├──► [ Signal Optimization Engine ]
+            │         ├── Cycle Length & Green Split Tuning
+            │         ├── Offset Progression Setup
+            │         └── Safety Guardrail Verification
+            │
+            ├──► [ Simulation & Impact Assessment ]
+            │         ├── Before vs. After Queue Comparison
+            │         ├── What-If Stress Test Sliders
+            │         └── CO2 & Fuel Impact Estimates
+            │
+            └──► [ Reports & Export Center ]
+                      ├── Controller Timing Sheets (CSV/NEMA)
+                      ├── Executive PDF Summary Report
+                      └── AI Rationale Export
+Screen-by-Screen User Journey
+Screen 1: Dashboard & Project Management
+Header: Workspace Selector, Search Bar, Municipal Account Profile, System Notifications.
+Main Area: Grid view of active retiming projects (e.g., "Downtown Arterial Corridor", "Westside Highway Network").
+Key Visuals: Summary cards showing Total Intersections Analyzed, Average Delay Reduced across projects, and Last
+Plan Update dates.
+Primary Action: "+ Create New Corridor Retiming Project" button.
+Screen 2: Data Ingestion & Corridor Configuration
+Left Panel (Upload Area): Drag-and-drop box for traffic count CSV files and incident logs. Automated file validation
+indicator.
+Right Panel (Geometry Builder): Interactive node map where users select intersections, specify approach lane counts,
+speed limits, and turning ratios.
+Bottom Bar: "Parse & Analyze Congestion Data" primary action button.
+Screen 3: Congestion Analytics & Bottleneck Dashboard
+Top Ribbon: Metric cards showing Peak Hour Identified (e.g., 08:00 AM - 09:00 AM), Worst Intersection V/C Ratio (1.14),
+and Corridor Average Delay (54.2s/veh).
+Center Map / Heatmap: Color-coded arterial corridor map highlighting red/orange bottleneck intersections.
+Bottom Charts: Hourly volume bar charts and approach-level Level of Service (LOS) breakdown graphs.
+Primary Action: "Proceed to Signal Optimization" button.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+MetroFlow AI — Product Requirements Document (PRD)
+Page 12 of 16
+
+--- PAGE 13 ---
+Screen 4: Optimization & Simulation Workbench
+Split View Layout:
+Left Side (Timing Parameters): Interactive phase diagram and slider controls for Cycle Length (90s - 150s), Phase
+Green Splits (seconds), and Offset values. Displays real-time green time validation warnings if safety walk times are
+breached.
+Right Side (Simulated Results): Side-by-side "Before vs. After" comparative metrics: Control Delay (54.2s → 36.1s),
+Queue Length (120m → 75m), Intersection LOS (E → C).
+Bottom Controls: Interactive "Volume Surge Stress Test" slider (+/- 30% traffic variation).
+Screen 5: AI Rationale & Report Export Center
+Left Panel (AI Narrative): Markdown-formatted narrative generated by Azure OpenAI explaining the engineering
+justification for split shifts, cited standards, and explicit simulation assumptions.
+Right Panel (Export Preview): Live preview of the Controller Parameter Table (NEMA format) and Executive PDF
+Summary.
+Primary Actions: "Download Controller Timing Sheet (CSV)", "Download Executive PDF Report", "Save & Lock Project
+Schedule".
+Feature Dependency Map
+[ Historical Traffic CSV Upload ] ──────┐
+                                       ├──► [ Data Parsing & Validation Engine ]
+[ Road Geometry & Metadata Entry ] ────┘                   │
+                                                           ▼
+                                           [ Bottleneck & V/C Detection Engine ]
+                                                           │
+                                                           ▼
+                                           [ Webster Optimization Algorithm ]
+                                                           │
+                                           ┌───────────────┴───────────────┐
+                                           ▼                               ▼
+                           [ Queuing Simulation Engine ]     [ Safety Bounds Validator ]
+                                           │                               │
+                                           └───────────────┬───────────────┘
+                                                           ▼
+                                           [ Azure OpenAI Rationale Engine ]
+                                                           │
+                                                           ▼
+                                           [ Export Suite: PDF & Controller CSV ]
+• 
+◦ 
+◦ 
+• 
+• 
+• 
+• 
+MetroFlow AI — Product Requirements Document (PRD)
+Page 13 of 16
+
+--- PAGE 14 ---
+Product Roadmap
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│ PHASE 1: HACKATHON MVP (Weeks 1 - 4)                                             │
+├──────────────────────────────────────────────────────────────────────────────────┤
+│ • CSV Volume Data Ingestion & Geometry Metadata Parser                           │
+│ • Peak Hour & Bottleneck Analyzer Engine (V/C Ratio Calculation)                 │
+│ • Webster Green Split & Cycle Length Calculator                                  │
+│ • Lightweight M/M/1 Queuing Simulation (Before vs After Delay/Queue)             │
+│ • Azure OpenAI Structured Narrative Integration                                  │
+│ • Basic Streamlit UI with PDF/CSV Export Capabilities                            │
+└──────────────────────────────────────────────────────────────────────────────────┘
+                                       │
+                                       ▼
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│ PHASE 2: ENTERPRISE COMMERCIAL VERSION (Months 2 - 6)                            │
+├──────────────────────────────────────────────────────────────────────────────────┤
+│ • Corridor-wide Multi-Intersection Coordination & Offset Optimization            │
+│ • Interactive Web Dashboard (React/Node.js) with GIS Map Overlays                │
+│ • Automated Anomaly & Incident Filtering Logic                                   │
+│ • Multi-Scenario Comparative Analysis ("What-If" Planning)                       │
+│ • Role-Based Access Control (RBAC) & Municipal Multi-Tenancy                     │
+└──────────────────────────────────────────────────────────────────────────────────┘
+                                       │
+                                       ▼
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│ PHASE 3: FUTURE SMART CITY EXTENSIONS (Months 6 - 12+)                           │
+├──────────────────────────────────────────────────────────────────────────────────┤
+│ • Automated Integration with City Loop Detector & SCADA APIs                     │
+│ • SUMO Microscopic Traffic Simulation Engine Integration                         │
+│ • Transit Signal Priority (TSP) & Emergency Preemption Optimization              │
+│ • V2X SPaT Data Export Module for Connected Vehicles                             │
+└──────────────────────────────────────────────────────────────────────────────────┘
+Suggested Product Names (20 Options)
+MetroFlow AI (Selected)
+SignalGrid AI
+UrbanPulse Mobility
+RetimeIQ
+GridOptima
+FlowSync AI
+ClearPhase AI
+TrafficLogic Pro
+SmartSplit AI
+TransitMatrix
+MetroSignal AI
+UrbanFlow Studio
+SignalPulse Engine
+CorridorIQ
+FlowPhase Analytics
+OptiGrid Urban
+GridSync AI
+TrafficMind Offline
+UrbanRetime AI
+ApexTraffic AI
+Suggested Taglines (20 Options)
+Unlocking urban movement through explainable signal retiming. (Selected)
+Smarter signals, smoother corridors, zero live risk.
+Turning historical traffic data into intelligent signal decisions.
+Eliminate city gridlock, one phase at a time.
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+1. 
+2. 
+3. 
+4. 
+MetroFlow AI — Product Requirements Document (PRD)
+Page 14 of 16
+
+--- PAGE 15 ---
+Offline signal optimization powered by transparent AI.
+Data-driven traffic engineering made fast and explainable.
+Transforming traffic counts into optimized green light schedules.
+Engineering better urban flow without new hardware.
+From raw volume logs to optimized signal timing in minutes.
+Precision corridor tuning for modern smart cities.
+Simulate, optimize, and retune with complete confidence.
+Say goodbye to static signal timing gridlock.
+The intelligent advisory co-pilot for municipal traffic engineers.
+Optimize green splits, reduce delay, lower city emissions.
+Clear visual analytics and safe offline signal recommendations.
+Bridging traditional traffic engineering with explainable AI.
+Intelligent signal retiming without the micro-simulation overhead.
+Smarter green split allocation backed by queuing science.
+Unlocking arterial throughput using the data you already have.
+Safe, simulated, and optimized traffic management for modern cities.
+Critical Evaluation & Judge Review
+1. Key Product Weaknesses
+Reliance on Static Historical CSVs: The MVP assumes municipal count data is clean and structured. In reality, city loop
+detector logs are notoriously messy, corrupted, or contain long gaps.
+Simplified Queuing Model Limitations: M/M/1 and Webster queuing models assume steady-state arrivals, which can
+under-predict delay during extreme oversaturated conditions (V/C > 1.2) where queues compound exponentially.
+Lack of Manual Override Granularity in MVP: Early UI designs focus heavily on automated AI generation, which can
+alienate conservative traffic engineers who demand granular control over individual phase clearance intervals.
+2. Missing Features
+Pedestrian & Bicycle Phasing Constraints: The initial feature set emphasizes vehicular throughput, but urban traffic
+engineers must legally accommodate minimum pedestrian walk and flashing don't walk (FDW) intervals.
+Corridor Offset Progression Diagrams (Time-Space Diagrams): Traffic engineers rely heavily on Time-Space
+diagrams to visualize green wave bands across multi-intersection corridors. This visual was omitted from early functional
+requirements.
+3. Unnecessary / Over-Engineered Features
+Complex LLM Natural Language Chat Interfaces: Adding a conversational chatbot for retiming setup adds unnecessary
+complexity and non-deterministic behavior. A structured narrative summary report is far more practical for municipal
+compliance.
+Real-time API Push Intentions: Attempting to build real-time signal controller integration hooks violates problem
+statement guardrails and creates severe municipal security/safety liability concerns.
+4. Opportunities to Improve Before UI/UX Design
+Integrate HCM Minimum Safety Hard-Bounds: Hardcode statutory minimum pedestrian crossing formulas explicitly into
+the optimization algorithm so the UI automatically blocks invalid green split adjustments.
+Add Interactive Time-Space Progression Diagrams: Include a visual Time-Space graph on Screen 4 showing green
+wave bands along the corridor.
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+17. 
+18. 
+19. 
+20. 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+MetroFlow AI — Product Requirements Document (PRD)
+Page 15 of 16
+
+--- PAGE 16 ---
+Implement Automated CSV Data Cleaning: Add an interactive data-cleaning step during ingestion that highlights and
+repairs missing timestamps or abnormal volume spikes before running calculations.
+Focus Heavy UI Real-Estate on "Before vs. After" Validation: Design Screen 4 around a side-by-side comparative
+layout that clearly highlights delay reduction and queue improvements to give engineers immediate confidence in the
+recommendation.
+• 
+• 
+MetroFlow AI — Product Requirements Document (PRD)
+Page 16 of 16

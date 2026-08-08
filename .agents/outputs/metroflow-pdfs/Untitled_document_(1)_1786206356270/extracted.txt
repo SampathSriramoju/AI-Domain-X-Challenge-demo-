@@ -1,0 +1,574 @@
+
+--- PAGE 1 ---
+This is the complete data pipeline and architectural specification for the MetroFlow AI 
+platform, designed strictly according to the provided Product Requirements Document (PRD) 
+and Research Report. 
+1. DATA REQUIREMENTS 
+Based on the uploaded documents, here is the exact data required to feed the analytical 
+engine. 
+A. Traffic Count Data 
+●​ Field Name: Timestamp | Type: Datetime | Unit: YYYY-MM-DD HH:MM:SS | 
+Example: 2026-08-08 07:45:00 | Mandatory: Yes | Why: Temporal cluster analysis 
+for peak windows. | Source/Support: Requirement from PRD (hourly/minute counts).​
+ PDF+ 1 
+●​ Field Name: Intersection_ID | Type: String | Unit: None | Example: INT_04 | 
+Mandatory: Yes | Why: Distinguishes multi-intersection corridor data. | 
+Source/Support: Requirement from PRD (multi-intersection scenario).​
+ PDF+ 1 
+●​ Field Name: Approach_Direction | Type: String | Unit: None | Example: 
+Eastbound | Mandatory: Yes | Why: To map volumes to specific signal phases. | 
+Source/Support: Requirement from PRD (approach-level analysis).​
+ PDF+ 1 
+●​ Field Name: Volume | Type: Integer | Unit: Vehicles/interval | Example: 145 | 
+Mandatory: Yes | Why: Core metric for volume-to-capacity calculations. | 
+Source/Support: Finding from Research & PRD (traffic counts).​
+ PDF+ 2 
+B. Road Metadata 
+●​ Field Name: Intersection_ID | Type: String | Unit: None | Example: INT_04 | 
+Mandatory: Yes | Why: Relational key to traffic counts. | Source/Support: 
+Requirement from PRD.​
+ PDF+ 1 
+●​ Field Name: Approach_Direction | Type: String | Unit: None | Example: 
+Eastbound | Mandatory: Yes | Why: Defines the geometry of the specific leg. | 
+Source/Support: Requirement from PRD.​
+ PDF+ 1 
+●​ Field Name: Lanes | Type: Integer | Unit: Count | Example: 3 | Mandatory: Yes | 
+Why: Calculates total approach capacity. | Source/Support: Requirement from PRD.​
+ PDF+ 1 
+●​ Field Name: Speed_Limit | Type: Integer | Unit: mph/kmh | Example: 45 | 
+Mandatory: Yes | Why: Needed for yellow/red clearance safety bounds. | 
+Source/Support: Requirement from PRD.​
+ PDF+ 1 
+
+--- PAGE 2 ---
+●​ Field Name: Storage_Bay_Length | Type: Float | Unit: Meters | Example: 50.0 | 
+Mandatory: No | Why: Queue spillback risk scoring on short turn lanes. | 
+Source/Support: Requirement from PRD (US-11).​
+ PDF+ 1 
+C. Turning Movement Data 
+●​ Field Name: Intersection_ID | Type: String | Unit: None | Example: INT_04 | 
+Mandatory: Yes | Why: Relational key. | Source/Support: Requirement from PRD.​
+ PDF+ 1 
+●​ Field Name: Approach_Direction | Type: String | Unit: None | Example: 
+Eastbound | Mandatory: Yes | Why: Defines which approach the ratios apply to. | 
+Source/Support: Requirement from PRD.​
+ PDF+ 1 
+●​ Field Name: Left_Ratio | Type: Float | Unit: Decimal (0-1) | Example: 0.15 | 
+Mandatory: Yes | Why: Splits approach volume into distinct phase demands. | 
+Source/Support: Requirement from PRD (US-03).​
+ PDF+ 1 
+●​ Field Name: Through_Ratio | Type: Float | Unit: Decimal (0-1) | Example: 0.75 | 
+Mandatory: Yes | Why: Calculates through-movement saturation. | Source/Support: 
+Requirement from PRD (US-03).​
+ PDF+ 1 
+●​ Field Name: Right_Ratio | Type: Float | Unit: Decimal (0-1) | Example: 0.10 | 
+Mandatory: Yes | Why: Completes total approach demand breakdown. | 
+Source/Support: Requirement from PRD (US-03).​
+ PDF+ 1 
+D. Signal Timing Data (Baseline) 
+●​ Field Name: Intersection_ID | Type: String | Unit: None | Example: INT_04 | 
+Mandatory: Yes | Why: Relational key. | Source/Support: Requirement from PRD.​
+ PDF+ 1 
+●​ Field Name: Phase_ID | Type: Integer | Unit: None | Example: 2 | Mandatory: Yes 
+| Why: Maps to NEMA standard phases. | Source/Support: Requirement from PRD.​
+ PDF+ 1 
+●​ Field Name: Current_Green | Type: Integer | Unit: Seconds | Example: 45 | 
+Mandatory: Yes | Why: Baseline for before vs. after simulation. | Source/Support: 
+Requirement from PRD.​
+ PDF+ 1 
+●​ Field Name: Min_Ped_Walk | Type: Integer | Unit: Seconds | Example: 18 | 
+Mandatory: Yes | Why: Hard safety constraint for optimization. | Source/Support: 
+Requirement from PRD.​
+ PDF+ 1 
+●​ Field Name: Yellow_Time | Type: Float | Unit: Seconds | Example: 4.0 | 
+Mandatory: Yes | Why: Statutory safety bound enforcement. | Source/Support: 
+Requirement from PRD (FR-C04).​
+ PDF+ 1 
+
+--- PAGE 3 ---
+E. Incident Data 
+●​ Field Name: Incident_ID | Type: String | Unit: None | Example: INC_001 | 
+Mandatory: No | Why: Tracks unique events. | Source/Support: Requirement from 
+PRD.​
+ PDF+ 1 
+●​ Field Name: Timestamp_Start | Type: Datetime | Unit: YYYY-MM-DD HH:MM:SS 
+| Example: 2026-08-08 14:00:00 | Mandatory: Conditional (if uploaded) | Why: 
+Filters out anomalies from baseline timing. | Source/Support: Requirement from 
+PRD (US-04).​
+ PDF+ 1 
+●​ Field Name: Event_Type | Type: String | Unit: None | Example: Roadwork | 
+Mandatory: Conditional | Why: Explains volume drops or delay spikes. | 
+Source/Support: Requirement from PRD (US-04).​
+ PDF+ 1 
+2. SYNTHETIC DATA STRATEGY 
+To successfully demonstrate the MVP, the synthetic data must replicate real-world traffic 
+physics and daily commuter rhythms. 
+●​ Dataset Structure: A 5-intersection continuous arterial corridor (Main Street) 
+cross-sected by minor side streets. 
+●​ Number of Approaches: 4 approaches per intersection (N/S/E/W). 
+●​ Time Resolution: 15-minute intervals. 
+●​ Duration: 7 continuous days (Monday - Sunday). 
+●​ Expected Congestion Pattern: 
+○​ AM Peak (07:45 - 09:15): Heavy Eastbound directional flow (commuters 
+heading to city center).​
+ PDF 
+○​ Midday (11:30 - 13:00): Balanced, moderate flow. 
+○​ PM Peak (16:30 - 18:00): Heavy Westbound directional flow (commuters 
+heading home). 
+○​ Off-Peak: Low, stable volume. 
+●​ Expected Bottleneck: 
+○​ Requirement from PRD: Intersection #4 (Main St & 5th Ave) must be the 
+primary bottleneck with a V/C ratio of 1.12 (LOS F).​
+ PDF 
+●​ Generation Strategy [Recommended Enhancement for Hackathon]: Use a 
+deterministic sine-wave function layered with random Gaussian noise to generate 
+base daily traffic. Multiply Eastbound AM intervals by a factor of 2.5 and Westbound 
+PM intervals by 2.5. Cap the physical capacity (lanes × saturation flow) so that 
+Intersection #4 mathematically triggers V/C>1.0 and initiates queue spillback in the 
+simulation. 
+3. DATA VALIDATION 
+
+--- PAGE 4 ---
+Requirement from PRD: Detect and flag corrupted, missing, or outlier data points with 
+options for interpolation or exclusion (FR-A03). 
+PDF 
+Problem 
+Detection 
+Method 
+Action 
+Warning/Error 
+Message 
+Continue? 
+Missing 
+Values 
+Null checks on 
+Volume or 
+Timestamp. 
+Interpolate using 
+adjacent 15-min 
+intervals. 
+Warning: Missing 
+volumes interpolated 
+for [Time]. 
+Yes 
+Duplicate 
+Records 
+Group by ID + 
+Timestamp. 
+Keep latest 
+record, discard 
+duplicates. 
+Warning: Duplicate 
+timestamps removed. 
+Yes 
+Invalid 
+Timestamps 
+Regex format 
+validation. 
+Reject row if 
+unparseable. 
+Error: Row 45 
+timestamp format 
+invalid. 
+No (if > 5% 
+missing) 
+Negative 
+Counts 
+Volume < 0. 
+Set to 0. 
+Warning: Negative 
+volumes floored to 0. 
+Yes 
+Unrealistic 
+Volumes 
+Volume > 
+(Lanes * 
+2200 
+veh/hr). 
+Cap at maximum 
+theoretical 
+saturation flow. 
+Warning: Implausible 
+volume at INT_4. 
+Capped at saturation 
+limit. 
+Yes 
+Invalid 
+Turning 
+Sum 
+Left + 
+Through + 
+Right != 
+1.0. 
+Normalize ratios 
+to sum to 1.0. 
+Warning: Turn ratios at 
+INT_2 normalized. 
+Yes 
+Missing 
+Speed 
+Limits 
+Null check on 
+metadata. 
+Default to 35 
+mph. 
+Warning: Missing 
+speed limit. Defaulting 
+to 35 mph. 
+Yes 
+4. DATA PIPELINE 
+Requirement from PRD: The end-to-end architecture (Module A to Module E). 
+PDF 
+1.​ USER UPLOAD: Traffic engineer uploads historical 15-minute volume logs and road 
+geometry via CSV to the web portal.​
+ PDF 
+2.​ DATA VALIDATION: System parses counts, checks for invalid/missing data, and 
+applies sanitization rules.​
+ PDF 
+
+--- PAGE 5 ---
+3.​ DATA CLEANING: Outliers (e.g., equipment malfunctions showing 10,000 veh/hr) 
+are clamped to physical maximums. 
+4.​ DATA TRANSFORMATION: Volumes are aggregated into hourly flow rates to match 
+Highway Capacity Manual (HCM) standards. 
+5.​ TRAFFIC ANALYSIS: System calculates base saturation flows based on lane 
+geometries.​
+ PDF 
+6.​ PEAK DETECTION: Temporal cluster analysis scans the 7-day dataset to identify 
+the highest sustained 1-hour volume blocks.​
+ PDF 
+7.​ BOTTLENECK DETECTION: Computes the Volume-to-Capacity (V/C) ratio. Flags 
+any intersection >1.0 as a bottleneck.​
+ PDF 
+8.​ SIGNAL OPTIMIZATION: Deterministic Python engine applies Webster's method to 
+compute optimal cycle length and allocates green time proportional to critical lane 
+volumes.​
+ PDF 
+9.​ SAFETY VALIDATOR: Checks new splits against minimum pedestrian walk times 
+and clearance intervals. Rejects/modifies if failed.​
+ PDF 
+10.​SIMULATION: M/M/1 queueing formulas estimate "before vs after" delay and queue 
+lengths.​
+ PDF 
+11.​AI EXPLANATION: Structured JSON of the before/after metrics is sent to Azure 
+OpenAI to generate a plain-text rationale.​
+ PDF 
+12.​DASHBOARD & EXPORT: Metrics, UI widgets, and PDF/CSV downloads are 
+rendered for the user.​
+ PDF 
+5. PEAK CONGESTION ANALYSIS 
+Requirement from PRD: Identify peak congestion windows automatically using temporal 
+cluster analysis (FR-B02). 
+PDF 
+●​ Inputs: Cleaned 15-minute interval total intersection volumes. 
+●​ Calculation: 
+1.​ Apply a rolling 1-hour sum window across the 24-hour timeline. 
+2.​ Group by time-of-day across the 7-day dataset to find the average hourly 
+volume for each 15-minute start time. 
+3.​ The absolute maximum rolling sum identifies the AM Peak, Midday Peak, 
+and PM Peak boundaries. 
+●​ Output: Time windows (e.g., 07:45 - 08:45 AM). 
+●​ Visualization: An hourly volume bar chart with shaded overlay boxes highlighting the 
+identified peak periods.​
+ PDF 
+
+--- PAGE 6 ---
+●​ Edge Cases: Flat volume profiles (e.g., weekends) where peaks are not distinct. The 
+system will default to the highest continuous 60-minute segment. 
+6. BOTTLENECK DETECTION 
+Requirement from PRD & Research: Calculate V/C ratios, assign HCM LOS based on delay, 
+and map multi-intersection bottlenecks. 
+PDF+ 1 
+●​ Capacity (c): Number of Lanes × Saturation Flow (default 1,900 veh/hr/lane under 
+ideal conditions). 
+●​ Traffic Demand (v): Hourly flow rate derived from the peak 15-minute volume. 
+●​ V/C Ratio (X): Calculated as v/c. 
+●​ Worked Synthetic Example: 
+○​ Intersection 4, Eastbound Approach. 
+○​ Demand (v): 2,120 veh/hr. 
+○​ Lanes: 2. Saturation Flow: 1,900 veh/hr/lane. 
+○​ Green Ratio (g/C): 0.45. 
+○​ Capacity (c): 2×1,900×0.45=1,710 veh/hr. 
+○​ V/C Ratio: 2,120/1,710=1.24. 
+●​ Ranking: Intersections are ranked descending by their highest approach V/C ratio. 
+V/C >1.0 is flagged as a bottleneck (LOS F).​
+ PDF 
+7. SIGNAL TIMING RECOMMENDATION 
+Requirement from PRD & Research: Use Webster's method to calculate cycle lengths and 
+splits offline. 
+PDF+ 1 
+●​ Algorithm Step-by-Step (Deterministic Python Module): 
+1.​ Traffic Demand: Identify critical lane volumes (vc​) for conflicting phases 
+(e.g., North/South vs East/West). 
+2.​ Saturation Ratio (y): Calculate y=vc​/s for each critical phase. Sum these to 
+find intersection total Y=∑y. 
+3.​ Lost Time (L): Calculate total lost time per cycle (clearance intervals). 
+4.​ Cycle Length (C0​): Apply Webster's Formula:​
+ PDF​
+C0​=1−Y1.5L+5​ 
+5.​ Cycle Bounds: Constrain C0​ to user-defined limits (e.g., 60s min, 180s max) 
+(FR-C02).​
+ PDF 
+6.​ Green Split: Distribute effective green time proportionally to critical ratios:​
+gi​=(C0​−L)×Yyi​ 
+
+--- PAGE 7 ---
+7.​ Corridor Offset: Calculate offsets based on distance and speed limit to 
+create a green wave (FR-C03).​
+ PDF 
+●​ Assumptions [Must be explicitly displayed]: Steady-state arrival patterns; default 
+saturation flow of 1,900 veh/hr/lane; no heavy vehicle/grade impedance unless 
+manually specified.​
+ PDF 
+8. SAFETY GUARDRAILS 
+Requirement from PRD: Hard safety lower-bounds for minimum green, yellow change, red 
+clearance, and pedestrian walk times (FR-C04). 
+PDF 
+●​ Pedestrian Walk Time: Calculated based on crosswalk distance divided by walk 
+speed (e.g., 3.5 ft/sec). 
+●​ Yellow Interval: Calculated using approach speed limit and standard deceleration 
+rates. 
+●​ Validation Layer: Before the Python optimization engine outputs its result, the 
+Safety_Validator module intercepts the array. 
+○​ Check: If Calculated_Green[Phase_2] < 
+Min_Ped_Walk[Phase_2] 
+○​ Action: Override Calculated_Green to equal Min_Ped_Walk. 
+Re-distribute the remaining cycle time to other phases. 
+○​ If mathematical resolution is impossible without exceeding max cycle length, 
+the system rejects the calculation and raises a flag: "Optimization blocked: 
+Volume demands conflict with mandatory pedestrian safety minimums." 
+9. BEFORE VS AFTER SIMULATION 
+Requirement from PRD: Simulate queue accumulation/dissipation using M/M/1 and Webster 
+queuing formulation logic, estimate delay, fuel, and CO2, and explicitly label as estimates. 
+PDF 
+●​ Model Used: Webster's Delay Formula & M/M/1 Queuing.​
+ PDF+ 1 
+●​ Calculate Uniform Delay (d1​):​
+d1​=1−[min(1,X)×(g/C)]0.5C(1−g/C)2​ 
+●​ Calculate Random Delay (d2​): Assessed using M/M/1 queuing approximations. 
+●​ Queue Length: Q=Arrival Rate×Delay. 
+●​ Display Logic: 
+○​ Current Signal Plan → Calculates Delay X, Queue Y, LOS Z. 
+○​ Recommended Signal Plan → Calculates Delay A, Queue B, LOS C. 
+○​ Delta metrics: "Average intersection delay reduced by 35% (SIMULATED 
+ESTIMATE)." 
+
+--- PAGE 8 ---
+●​ Emissions [Requirement from PRD]: Calculate fuel/CO2 based on idling time (e.g., 
+0.5 gallons per hour of vehicle idle delay).​
+ PDF 
+●​ Limitations Disclaimer: "This simulation assumes stable flow. Actual field results 
+will vary. No real-world guaranteed improvements are claimed."​
+ PDF+ 1 
+10. WHAT-IF STRESS TESTING 
+Requirement from PRD: Interactive slider controls allowing users to perform traffic volume 
+variation stress testing (+/- 30%). 
+PDF 
+●​ Design: A web UI slider on the Simulation screen mapping to multipliers: [0.7, 
+0.8, 0.9, 1.0, 1.1, 1.2, 1.3]. 
+●​ Logic: When the user moves the slider to "+20%", the frontend passes a 1.2 
+demand multiplier to the Python API. The backend recalculates the V/C ratio, Delay, 
+and Queue length using the new demand over the fixed, recommended capacity. 
+●​ Output: The UI updates dynamically, showing if the proposed plan fails (LOS drops 
+to F) under a 20% surge, proving/disproving plan robustness.​
+ PDF 
+11. INCIDENT HANDLING 
+Requirement from PRD: Optional ingestion of incident logs (accidents, construction) tagged 
+by timestamp and location. 
+PDF 
+●​ Representation: CSV upload of Incident_ID, Location, Start_Time, 
+End_Time. 
+●​ Logic: The data parsing engine checks traffic counts against incident time-windows. 
+●​ Action: If a major volume drop or delay spike correlates with a known accident 
+window, the system automatically excises that block of data from the "baseline" 
+profile used to calculate green splits, preventing an abnormal day from skewing a 
+5-year fixed timing plan.​
+ PDF 
+12. AI ROLE 
+Requirement from PRD: Azure OpenAI must provide plain-language explanations and 
+convert math to narrative, but MUST NOT calculate math or override safety. 
+PDF 
+
+--- PAGE 9 ---
+●​ Architecture Flow: DETERMINISTIC TRAFFIC ENGINE → CALCULATED 
+RESULTS → STRUCTURED JSON → AZURE OPENAI → PLAIN-LANGUAGE 
+EXPLANATION 
+●​ Prompt Engineering (Internal): "You are an expert traffic engineer advisor. You are 
+provided with a structured JSON containing a before-and-after signal timing change 
+and the resulting simulated delay. Explain to a city council why Phase 2 green time 
+was increased by 14 seconds based strictly on the JSON data. Do not invent traffic 
+data or make guaranteed improvement claims." 
+●​ Example Expected Output: "Green time for Phase 2 (Eastbound Through) was 
+increased by 14 seconds to accommodate the morning rush surge observed between 
+08:00 AM - 08:45 AM. Minimum pedestrian clearance times (Phase 4/8) were strictly 
+preserved at 18 seconds."​
+ PDF 
+13. DASHBOARD DATA 
+Requirement from PRD: Map data needs for the screen-by-screen user journey. 
+PDF 
+Dashboard 
+Screen 
+Input/Calculated Data 
+Visuals/Charts 
+User Actions 
+Data 
+Ingestion 
+Raw CSVs, Intersection 
+Geometry, Incident Logs. 
+File upload progress 
+bar, Interactive node 
+map. 
+Upload files, map 
+approach lanes, set 
+speed limits. 
+Congestion 
+Analyzer 
+Rolling 1-hr sums, V/C 
+Ratios, LOS per 
+approach. 
+Corridor Heatmap, 
+Hourly volume bar 
+charts. 
+View peak hours, 
+identify bottlenecks. 
+Signal 
+Optimization 
+Recommended Cycle 
+Length, Phase Splits, 
+Offsets. 
+Phase diagram, 
+minimum safety 
+threshold alerts. 
+Adjust bounds, lock 
+preemptions, trigger 
+optimizer. 
+Simulation 
+M/M/1 Queue outputs, 
+Baseline vs 
+Recommended Delay. 
+Side-by-side metric 
+cards (Delay, Queue, 
+LOS). 
+Adjust "What-if" 
+slider (+/- 30%), 
+view CO2 impact. 
+AI Rationale & 
+Export 
+JSON payload from 
+Python engine, Azure 
+OpenAI text. 
+Plain-text Markdown 
+panel, Controller CSV 
+preview. 
+Download PDF 
+Report, Download 
+NEMA CSV. 
+[Recommended Enhancement for Hackathon MVP]: Integrate an interactive Time-Space 
+progression diagram on the Signal Optimization screen to visualize the corridor green wave, 
+as heavily recommended by the PRD's self-evaluation section. 
+PDF 
+
+--- PAGE 10 ---
+14. FINAL DATA ARCHITECTURE 
+Plaintext 
+Historical Traffic CSV Upload  
+       │  
+Road Geometry & Metadata Entry  
+       │  
+       ▼ 
+┌───────────────────────────────────────────┐ 
+│        Data Parsing & Validation Engine   │ (Cleans data, checks format) 
+└───────────────────────────────────────────┘ 
+       │  
+       ▼ 
+┌───────────────────────────────────────────┐ 
+│      Bottleneck & V/C Detection Engine    │ (Calculates capacity, flags V/C > 1.0) 
+└───────────────────────────────────────────┘ 
+       │  
+       ▼ 
+┌───────────────────────────────────────────┐ 
+│       Webster Optimization Algorithm      │ (Deterministic Python Math) 
+└───────────────────────────────────────────┘ 
+       │ 
+       ├────────────────────────────────────┐ 
+       ▼                                    ▼ 
+┌────────────────────────────┐    
+┌────────────────────────────┐ 
+│ Queuing Simulation Engine  │    │   Safety Bounds Validator  │ (Enforces min walk times) 
+└────────────────────────────┘    
+└────────────────────────────┘ 
+       │                                    │ 
+       └─────────────────┬──────────────────┘ 
+                         ▼ 
+┌───────────────────────────────────────────┐ 
+│        Azure OpenAI Rationale Engine      │ (Generates plain text explanation) 
+└───────────────────────────────────────────┘ 
+                         │ 
+                         ▼ 
+┌───────────────────────────────────────────┐ 
+│         Export Suite: PDF & Controller CSV│ (Generates NEMA timing sheets) 
+└───────────────────────────────────────────┘ 
+ 
+Requirement from PRD: Architecture based on Feature Dependency Map. 
+PDF 
+15. MVP VS OPTIONAL 
+Requirement from PRD: Feature prioritization based on the MoSCoW matrix. 
+
+--- PAGE 11 ---
+PDF 
+MUST BUILD FOR HACKATHON (MVP Priority): 
+●​ CSV Upload & Basic Metadata Entry.​
+ PDF 
+●​ Peak Window ID & V/C Ratio calculation.​
+ PDF 
+●​ Webster Green Splits & Cycle Bounds engine.​
+ PDF 
+●​ Queuing Theory Delay & Queue Simulation (M/M/1).​
+ PDF 
+●​ Volume Surge Stress Test Slider.​
+ PDF 
+●​ LLM Rationale Generation & PDF/CSV Export.​
+ PDF 
+●​ Interactive Time-Space Progression Diagrams (added as priority based on PRD 
+review section).​
+ PDF 
+OPTIONAL ENHANCEMENTS (Post-MVP): 
+●​ Batch Ingestion & GIS Shapefile Auto-import.​
+ PDF 
+●​ Weather Impact Correlation.​
+ PDF 
+●​ Day-of-Week Schedule Banding.​
+ PDF 
+●​ Custom Municipal Branding for PDFs.​
+ PDF 
+●​ Deep Reinforcement Learning (SUMO) integration.​
+ PDF 
+16. FINAL IMPLEMENTATION SPECIFICATION 
+For the developer building this platform: 
+1.​ "WHAT DATA DO WE NEED?" You need a continuous 7-day CSV of 15-minute 
+traffic counts, tagged by intersection and approach, alongside basic road geometry 
+(lanes, speed limits). Generate this synthetically using a sine-wave baseline heavily 
+weighted in the Eastbound AM and Westbound PM directions.​
+ PDF 
+2.​ "WHAT DO WE DO WITH THAT DATA?" Validate it (remove negatives/nulls), 
+aggregate it into hourly flow rates, and calculate the V/C ratio by dividing the volume 
+by the approach capacity (lanes × saturation flow).​
+ PDF 
+3.​ "HOW DO WE CALCULATE THE RESULT?" Use deterministic Python to run 
+Webster's formula C0​=(1.5L+5)/(1−Y). Distribute the resulting green time based on 
+the ratio of competing critical lane volumes. Pass this through a safety check that 
+
+--- PAGE 12 ---
+hard-stops any green time below the pedestrian minimum walk time.​
+ PDF+ 1 
+4.​ "HOW DOES THE AI USE THE RESULT?" Do not let the AI do math. Take the 
+before-and-after simulation numbers generated by your Python queuing equations, 
+wrap them in a JSON, and prompt Azure OpenAI to write a 2-paragraph summary 
+explaining why the splits changed.​
+ PDF 
+5.​ "WHAT DOES THE USER SEE?" A clean web dashboard showing a corridor 
+heatmap, side-by-side delay/queue reduction metrics, a "what-if" volume slider, and 
+downloadable NEMA CSV / PDF reports. Every screen must clearly label outputs as 
+offline simulation estimates.​
+ PDF+ 2 
+ 

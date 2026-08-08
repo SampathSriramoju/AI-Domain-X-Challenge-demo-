@@ -1,0 +1,212 @@
+
+--- PAGE 1 ---
+Urban Traffic Congestion Analyzer + 
+Signal Timing Recommendation 
+(Offline) 
+1. Problem Overview 
+The PDF asks for an offline analytics tool that identifies congestion peaks and bottlenecks 
+from historical traffic flow data and recommends signal timing adjustments or coordination 
+suggestions. It is decision support only: no real-time control, no guaranteed improvement 
+claims, and all simulations must clearly state assumptions. In practical terms, the task is to 
+help traffic engineers decide how to retime signals before any field 
+deployment.jetirAI-Domain-X-Challenge-2026-Problem-Statements.pdf 
+2. What the Problem Is Asking 
+The problem is asking you to analyze how traffic congestion changes by time of day and road 
+segment, then use historical counts to suggest better signal timing. The expected output is 
+not just a chart; it should identify where queues and delays are concentrated and explain why 
+certain green split changes or coordination ideas might help. The solution should also 
+include a before-vs-after style estimate using a simple simulation or queueing 
+model.AI-Domain-X-Challenge-2026-Problem-Statements.pdf 
+3. What Is Expected 
+The PDF expects four outputs: peak congestion patterns, bottleneck identification, timing 
+recommendations with rationale, and dashboard visualization. It also expects a simple 
+simulation showing likely improvement after the proposed changes. The recommendations 
+should be understandable to traffic engineers and should include explicit 
+assumptions.AI-Domain-X-Challenge-2026-Problem-Statements.pdf 
+4. What Is Not Expected 
+This is not a live traffic signal control system. It should not promise guaranteed 
+improvement because actual results depend on field conditions, detector quality, 
+
+--- PAGE 2 ---
+pedestrians, incidents, and implementation constraints. It should also avoid unsafe or overly 
+confident claims.AI-Domain-X-Challenge-2026-Problem-Statements.pdf 
+5. Business Context 
+Cities want to reduce delay, improve travel time reliability, and make better use of existing 
+infrastructure. Static signal timings often become inefficient as traffic demand changes by 
+hour or day. This makes offline analytics valuable because it can identify where current 
+timings are mismatched with demand.jetirAI-Domain-X-Challenge-2026-Problem-Statements.pdf 
+6. Engineering Context 
+From an engineering perspective, this is a signal timing and coordination problem, not just a 
+data visualization problem. The key goal is to allocate limited green time across competing 
+movements in a way that reduces delay and queue growth. That means understanding 
+saturation flow, cycle length, split, offset, and progression across intersections.jetir 
+7. Core Traffic Concepts 
+Congestion 
+Congestion happens when traffic demand exceeds the ability of the road or intersection to 
+serve vehicles. It matters because delay, queueing, and unreliability rise quickly once 
+demand approaches capacity. Example: an intersection approach with insufficient green 
+time will accumulate a queue every cycle.jetir 
+Bottleneck 
+A bottleneck is the part of the network where flow is restricted more than elsewhere. It 
+matters because the whole corridor can be affected by one constrained movement. Example: 
+a short left-turn bay may block a through lane.jetir 
+Queue Formation 
+Queues form when arrivals exceed discharge for a period of time. It matters because queue 
+growth is the clearest sign of inadequate capacity or poor timing. Illustration: if 20 vehicles 
+arrive per minute but only 15 can be served, the queue grows by 5 per minute.jetir 
+Delay 
+
+--- PAGE 3 ---
+Delay is the extra time spent compared with free-flow or ideal movement. It matters because 
+delay is the main performance indicator for intersections. Example: vehicles waiting at a red 
+light experience control delay.jetir 
+Throughput 
+Throughput is the number of vehicles actually served in a given period. It matters because a 
+good signal plan should increase served traffic or reduce delay without causing spillback. 
+Illustration: more effective green allocation can raise throughput on a congested 
+movement.jetir 
+Capacity 
+Capacity is the maximum flow that can pass under prevailing conditions. It matters because 
+congestion begins when demand exceeds capacity. Example: an approach has a finite 
+discharge rate even if demand is much higher.jetir 
+8. Signal Timing Concepts 
+Signalized Intersection 
+A signalized intersection uses traffic lights to manage conflicting movements. It matters 
+because signal timing determines how available capacity is shared. Example: one phase may 
+serve north-south through traffic while another serves east-west turns.jetir 
+Phase 
+A phase is the set of movements that receive green together. It matters because phases divide 
+the cycle into service windows. Example: protected left turns may need their own phase.jetir 
+Green Time 
+Green time is the period during which a movement is allowed to proceed. It matters because 
+more green generally means more vehicles can be served. Example: increasing green for a 
+heavy approach may reduce its queue.jetir 
+Red Time 
+Red time is the period during which a movement must stop. It matters because it directly 
+contributes to delay and queue build-up. Example: a minor approach may wait through a 
+long main-road green.jetir 
+
+--- PAGE 4 ---
+Cycle Length 
+Cycle length is the total time for one complete sequence of phases. It matters because it sets 
+the overall rhythm of the intersection and affects delay and coordination. Example: a 
+90-second cycle serves all phases once every 90 seconds.jetir 
+Offset 
+Offset is the time difference between the start of green at successive intersections. It matters 
+because good offsets help vehicle platoons progress along a corridor with fewer stops. 
+Example: if vehicles reach the next signal when it turns green, progression improves.jetir 
+Coordination 
+Coordination synchronizes multiple intersections so traffic can move more smoothly along a 
+corridor. It matters because one intersection cannot be optimized in isolation if nearby 
+signals are coupled. Example: coordinated signals can create a green band for a dominant 
+travel direction.jetir 
+Green Wave 
+A green wave is a coordinated timing pattern that allows vehicles to pass through several 
+signals with minimal stopping. It matters because it reduces stops and travel time on 
+arterials. Example: a commuter corridor timed for peak-direction progression.jetir 
+9. Static vs Adaptive Signals 
+Static signals use fixed timings or time-of-day plans that only change periodically. Adaptive 
+signals adjust timings based on real-time detector data and changing demand. This 
+hackathon problem is closer to offline planning than live adaptive 
+control.AI-Domain-X-Challenge-2026-Problem-Statements.pdfjetir 
+10. Offline vs Online Optimization 
+Offline optimization means analyzing historical data and recommending a timing plan for 
+later use. Online optimization means the controller updates timings continuously as traffic 
+changes, which is outside the problem scope. Offline is simpler, more transparent, and better 
+suited to a hackathon MVP.AI-Domain-X-Challenge-2026-Problem-Statements.pdf 
+11. Current Industry Workflow 
+
+--- PAGE 5 ---
+Traffic engineers usually start with counts, turning movements, road geometry, and existing 
+timing plans. They identify critical movements, then compute or test candidate signal plans 
+using engineering methods such as Webster-style timing and coordination analysis. Final 
+changes are normally reviewed by humans because signal timing affects safety, operations, 
+and policy decisions.jetir 
+12. Common Limitations 
+Traffic demand changes by hour, day, season, incidents, and land use, so a fixed plan can 
+become outdated. Detector coverage is often incomplete, and many intersections rely on 
+sparse or noisy data. Coordination also creates tradeoffs, because helping one movement can 
+hurt another.jetir 
+13. Data Requirements 
+The PDF explicitly mentions traffic counts by intersection, vehicles per minute, time of day, 
+road metadata such as lanes and speed limit, turning ratios, and optional incident events like 
+roadwork or accidents. A useful implementation would also benefit from intersection IDs, 
+approach labels, phase IDs, signal plans, queue length, and travel time if available. Synthetic 
+data is acceptable under the problem’s 
+guidance.AI-Domain-X-Challenge-2026-Problem-Statements.pdfjetir 
+14. Traffic Engineering Basics 
+Saturation Flow 
+Saturation flow is the maximum discharge rate during a sustained green. It matters because 
+it is the basis for calculating how much traffic a phase can serve. Example: if a lane 
+discharges 1,800 veh/h under green, that is its saturation flow.jetir 
+Volume-to-Capacity Ratio 
+The volume-to-capacity ratio compares demand to service capacity. It matters because a 
+ratio near or above 1 indicates likely queue growth. Example: 900 veh/h demand over 1,800 
+veh/h capacity gives a ratio of 0.5.jetir 
+Webster Method 
+
+--- PAGE 6 ---
+Webster’s method is a classic fixed-time signal design approach that estimates a 
+near-optimal cycle length and allocates green time by demand. It matters because it is a 
+standard offline baseline for timing design. A common form is  
+C0=(1.5L+5)/(1−Y) 
+C 
+0 
+​ 
+=(1.5L+5)/(1−Y), where  
+L 
+L is lost time and  
+Y 
+Y is the sum of critical flow ratios.jetir 
+Worked Example 
+If total lost time is 16 seconds and the sum of critical flow ratios is 0.80, the estimated 
+Webster cycle length is about 145 seconds. That cycle would then be split among phases 
+according to their critical demand share after accounting for lost time. This is a practical 
+baseline, not a guarantee of optimal performance.jetir 
+15. Stakeholder Analysis 
+Traffic engineers want lower delay, better progression, and clearer evidence for timing 
+changes. Municipal corporations want public mobility improvements and efficient use of 
+infrastructure. Smart city authorities want corridor-level analytics and citywide visibility, 
+while traffic police care about incident response and field 
+practicality.AI-Domain-X-Challenge-2026-Problem-Statements.pdfjetir 
+Emergency services care about reliable access and fast movement during urgent situations. 
+Citizens care about shorter commute times, fewer stops, and more predictable travel. 
+Because these goals can conflict, signal timing is both an engineering and a policy 
+issue.AI-Domain-X-Challenge-2026-Problem-Statements.pdfjetir 
+16. Existing Systems 
+SCATS is a real-world adaptive signal system used in many cities; its official site reports 
+deployment at more than 60,000 intersections across 200 cities and 30 countries. FHWA’s 
+
+--- PAGE 7 ---
+traffic signal timing manual explains the engineering basis of coordination, including cycle 
+length, splits, offsets, and progression. The key takeaway is that the hackathon problem sits 
+in the offline planning layer, not the live control 
+layer.AI-Domain-X-Challenge-2026-Problem-Statements.pdfjetir 
+17. Practical Opportunities 
+The best opportunity is to explain which movements are critical and why they dominate the 
+timing decision. Another opportunity is corridor-level reasoning, because optimizing one 
+intersection alone can hurt downstream progression. A clear before-vs-after simulation with 
+explicit assumptions can make the solution more 
+credible.AI-Domain-X-Challenge-2026-Problem-Statements.pdfjetir 
+18. Common Mistakes 
+One common mistake is assuming more green automatically solves congestion. In reality, 
+bad allocation can shift queues or worsen coordination. Another mistake is ignoring offsets 
+and optimizing intersections independently. A third mistake is presenting simulation output 
+as guaranteed improvement, which the PDF does not 
+allow.AI-Domain-X-Challenge-2026-Problem-Statements.pdfjetir 
+19. Key Takeaway 
+This problem is an offline traffic-signal analytics task built around historical counts, simple 
+queueing or simulation logic, and explainable timing recommendations. It is not a real-time 
+controller and not just a dashboard task. The strongest solutions will be transparent, 
+corridor-aware, and careful about 
+assumptions.AI-Domain-X-Challenge-2026-Problem-Statements.pdfjetir 
+20. Source Notes 
+Primary source: AI Domain-X Challenge 2026 PDF, Problem Statement #18. External 
+reference: FHWA Traffic Signal Timing Manual, Chapter 6 on coordination. External 
+reference: official SCATS homepage.AI-Domain-X-Challenge-2026-Problem-Statements.pdfjetir 
+ 
+2 sources 
+ 
+
+--- PAGE 8 ---
+ 

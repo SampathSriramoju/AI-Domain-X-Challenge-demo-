@@ -1,0 +1,788 @@
+You are the Lead Full-Stack Engineer, Traffic Engineering Software Engineer, AI/ML Engineer, UX Engineer, and Hackathon Technical Lead for our project.
+
+PROJECT:
+MetroFlow AI
+
+HACKATHON:
+Problem Statement #18 — Urban Traffic Congestion Analyzer & Offline Signal Timing Recommendation Platform
+
+I have provided the existing MetroFlow AI project skeleton.
+
+I also have the following project documents available:
+
+1. Official Hackathon Problem Statement
+2. Research Report
+3. Product Requirements Document (PRD)
+4. Data & Analytics Specification
+5. UI/UX Specification
+6. Software Architecture & Technical Design
+
+READ ALL OF THESE DOCUMENTS BEFORE IMPLEMENTING.
+
+The official problem statement is the highest-priority source of truth.
+
+The PRD, Data Specification, UI/UX Specification, and Architecture explain how the solution should be implemented.
+
+Do NOT invent requirements that conflict with these documents.
+
+==================================================
+CORE OBJECTIVE
+==================================================
+
+Build a working hackathon MVP that solves the actual problem:
+
+• Analyze historical traffic flow data
+• Identify peak congestion patterns
+• Identify bottlenecks
+• Recommend offline signal timing changes
+• Recommend green-split adjustments
+• Explain why the recommendation was made
+• Simulate "before vs after" improvement estimates
+• Visualize results through a dashboard
+• Allow what-if traffic demand analysis
+• Generate useful reports
+
+This is an OFFLINE decision-support platform.
+
+IT MUST NOT:
+
+• Control traffic signals
+• Send commands to traffic controllers
+• Claim real-time optimization
+• Claim guaranteed real-world improvements
+• Invent traffic results
+• Allow an LLM to perform engineering calculations
+
+==================================================
+IMPORTANT ENGINEERING PRINCIPLE
+==================================================
+
+Separate deterministic engineering calculations from AI explanations.
+
+The architecture MUST follow:
+
+Historical Data
+      ↓
+Validation
+      ↓
+Preprocessing
+      ↓
+Traffic Analytics
+      ↓
+Peak Detection
+      ↓
+Bottleneck Detection
+      ↓
+Signal Optimization
+      ↓
+Safety Validation
+      ↓
+Simulation
+      ↓
+Structured Results
+      ↓
+Azure OpenAI
+      ↓
+Engineering Explanation
+      ↓
+Dashboard / Reports
+
+Python performs the actual calculations.
+
+Azure OpenAI only explains the calculated results.
+
+==================================================
+DATA INPUT
+==================================================
+
+The system must support the data described in the official problem statement and PRD.
+
+Traffic data should support fields such as:
+
+• timestamp
+• intersection_id
+• approach
+• direction
+• vehicle_count
+• interval_minutes
+
+Road metadata should support:
+
+• intersection_id
+• approach
+• lane_count
+• speed_limit
+• free_flow_speed
+• turning ratios
+• approach/storage information where required by the documents
+
+Signal data should support:
+
+• intersection_id
+• phase_id
+• movement
+• current_green
+• yellow_time
+• red_clearance
+• cycle_length
+• minimum_green
+• pedestrian clearance where applicable
+
+Optional incident data:
+
+• incident_id
+• timestamp
+• intersection_id
+• incident_type
+• severity
+• duration
+• affected_approach
+
+Support CSV and JSON where required.
+
+==================================================
+MODULE 1 — DATA INGESTION
+==================================================
+
+Implement:
+
+• CSV upload
+• JSON upload where required
+• File validation
+• Schema validation
+• Data preview
+• Required-column detection
+• Missing-value detection
+• Duplicate detection
+• Invalid numeric values
+• Invalid timestamps
+• Invalid turning ratios
+• Invalid lane counts
+• Invalid traffic counts
+
+Display clear:
+
+✓ Valid
+⚠ Warning
+✕ Error
+
+Do not silently discard bad data.
+
+Tell the user what is wrong and what action is required.
+
+==================================================
+MODULE 2 — DATA PREPROCESSING
+==================================================
+
+Create a clean preprocessing pipeline:
+
+Raw Data
+↓
+Validation
+↓
+Cleaning
+↓
+Timestamp normalization
+↓
+Aggregation
+↓
+Outlier handling
+↓
+Analytics-ready dataset
+
+Keep raw data unchanged.
+
+Create processed datasets separately.
+
+==================================================
+MODULE 3 — PEAK CONGESTION ANALYSIS
+==================================================
+
+Implement deterministic Python analytics to identify:
+
+• Peak congestion periods
+• AM peak
+• PM peak
+• Off-peak
+• Highest-demand windows
+
+Use the actual uploaded/synthetic traffic data.
+
+Do not hard-code the answer.
+
+Display:
+
+• Peak period
+• Traffic volume
+• Affected intersections
+• Directional imbalance
+• Trend charts
+
+==================================================
+MODULE 4 — BOTTLENECK DETECTION
+==================================================
+
+Implement deterministic bottleneck analysis.
+
+Calculate the metrics supported by the project documents, including where applicable:
+
+• Traffic demand
+• Capacity
+• Volume-to-Capacity ratio
+• Queue length
+• Delay
+• LOS
+
+Rank intersections by congestion severity.
+
+Allow the user to select an intersection and inspect the cause.
+
+The dashboard should clearly identify the worst bottleneck.
+
+==================================================
+MODULE 5 — SIGNAL TIMING OPTIMIZATION
+==================================================
+
+Implement the signal timing recommendation engine described in the PRD.
+
+Use transparent deterministic traffic-engineering calculations such as the specified Webster-based approach.
+
+Calculate:
+
+• Cycle length
+• Green splits
+• Phase allocation
+• Corridor offset where applicable
+
+The system must respect:
+
+• Minimum green
+• Yellow/change intervals
+• Red clearance
+• Pedestrian clearance
+• Other safety constraints specified in the documents
+
+DO NOT use an LLM to calculate signal timing.
+
+The optimization engine must produce structured numerical results.
+
+Example:
+
+{
+  "intersection_id": "...",
+  "current_cycle": ...,
+  "recommended_cycle": ...,
+  "current_green_split": ...,
+  "recommended_green_split": ...,
+  "reason": {
+      "metric": "...",
+      "value": ...
+  }
+}
+
+Do not fabricate these values.
+
+==================================================
+MODULE 6 — SAFETY VALIDATION
+==================================================
+
+Before a recommendation reaches the UI:
+
+Run a safety/constraint validation layer.
+
+Verify:
+
+• Minimum green
+• Yellow time
+• Red clearance
+• Pedestrian clearance
+• Valid phase allocation
+• Valid total cycle
+
+If a recommendation violates a constraint:
+
+DO NOT present it as valid.
+
+Show the violation clearly.
+
+==================================================
+MODULE 7 — BEFORE VS AFTER SIMULATION
+==================================================
+
+Build the simple simulation required by the problem statement.
+
+Compare:
+
+CURRENT SIGNAL PLAN
+
+vs
+
+RECOMMENDED SIGNAL PLAN
+
+Calculate simulated estimates for supported metrics such as:
+
+• Average delay
+• Queue length
+• LOS
+• Throughput where supported
+
+Every result MUST be explicitly labelled:
+
+"SIMULATED ESTIMATE"
+
+Also display:
+
+• Model used
+• Inputs
+• Assumptions
+• Limitations
+
+Never write:
+
+"Traffic will improve by X%."
+
+Instead write:
+
+"Simulation estimates a X% reduction under the stated assumptions."
+
+==================================================
+MODULE 8 — WHAT-IF ANALYSIS
+==================================================
+
+Implement traffic-demand stress testing.
+
+Allow:
+
+-30%
+-20%
+-10%
+0%
++10%
++20%
++30%
+
+Show how the simulated system behaves under each demand scenario.
+
+Update:
+
+• Delay
+• Queue
+• LOS
+• Bottleneck severity
+
+Clearly label the results as simulation.
+
+==================================================
+MODULE 9 — INCIDENT HANDLING
+==================================================
+
+If incident data is supplied:
+
+Support synthetic:
+
+• Accidents
+• Roadwork
+
+Do not allow an abnormal incident to automatically define the normal baseline traffic pattern.
+
+Clearly distinguish:
+
+NORMAL BASELINE
+
+from
+
+INCIDENT PERIOD
+
+==================================================
+MODULE 10 — AI ENGINEERING EXPLANATION
+==================================================
+
+Integrate Azure OpenAI only if credentials are available.
+
+The AI receives structured results from the deterministic traffic engine.
+
+Example:
+
+Traffic Engine
+↓
+JSON
+↓
+Azure OpenAI
+↓
+Explanation
+
+The AI should explain:
+
+• Why the intersection became a bottleneck
+• Why the signal timing was recommended
+• Which traffic metrics influenced the recommendation
+• Expected simulated effect
+• Assumptions
+• Limitations
+
+The AI MUST NOT:
+
+• Perform signal calculations
+• Modify calculated timing
+• Override safety validation
+• Invent traffic data
+• Claim guaranteed improvements
+
+If Azure OpenAI is unavailable:
+
+THE CORE APPLICATION MUST STILL WORK.
+
+Provide a deterministic fallback explanation generated from the calculated metrics.
+
+==================================================
+MODULE 11 — DASHBOARD
+==================================================
+
+Implement the UI according to the uploaded UI/UX specification.
+
+The core workflow should be:
+
+Dashboard
+↓
+Data Upload
+↓
+Validation
+↓
+Traffic Analysis
+↓
+Bottlenecks
+↓
+Signal Optimization
+↓
+Simulation
+↓
+AI Explanation
+↓
+Reports
+
+The dashboard should show relevant KPIs such as:
+
+• Intersections analyzed
+• Peak congestion period
+• Worst bottleneck
+• Worst V/C ratio
+• Average delay
+• Number of recommendations
+
+Use interactive charts.
+
+Use maps where specified by the UI/UX document.
+
+==================================================
+MODULE 12 — INTERSECTION DETAIL
+==================================================
+
+Allow the user to select an intersection.
+
+Show:
+
+• Traffic demand
+• Lane configuration
+• Turning ratios
+• Current timing
+• Recommended timing
+• V/C ratio
+• Delay
+• Queue
+• LOS
+• Simulation results
+
+Make the causal relationship understandable.
+
+==================================================
+MODULE 13 — SIGNAL OPTIMIZATION UI
+==================================================
+
+Show:
+
+CURRENT PLAN
+
+vs
+
+RECOMMENDED PLAN
+
+Display:
+
+• Cycle length
+• Green split
+• Phase timing
+• Offset if applicable
+
+Also display:
+
+• Optimization method
+• Key inputs
+• Safety validation
+• Assumptions
+
+==================================================
+MODULE 14 — SIMULATION UI
+==================================================
+
+Make this the strongest demo screen.
+
+Create a clear:
+
+BEFORE vs AFTER
+
+comparison.
+
+Show:
+
+Delay
+Queue
+LOS
+Throughput where supported
+
+Use visual comparisons.
+
+Clearly display:
+
+SIMULATED ESTIMATE
+
+Do not imply real-world guarantees.
+
+==================================================
+MODULE 15 — REPORTS
+==================================================
+
+Implement report generation according to the PRD.
+
+Support:
+
+• Executive PDF report
+• Recommendation CSV
+
+The report should contain:
+
+• Project information
+• Analysis period
+• Peak congestion
+• Bottlenecks
+• Current timing
+• Recommended timing
+• Simulation results
+• Assumptions
+• Limitations
+• AI rationale
+• Offline recommendation disclaimer
+
+==================================================
+MODULE 16 — SYNTHETIC DEMO DATA
+==================================================
+
+Create a realistic synthetic dataset so the application can be demonstrated immediately.
+
+It must contain:
+
+• Multiple intersections
+• Connected corridor
+• 24-hour traffic
+• Morning peak
+• Evening peak
+• Directional imbalance
+• Different lane counts
+• Turning ratios
+• At least one meaningful bottleneck
+• Optional incident events
+
+The dataset must be logically generated rather than random numbers.
+
+The application should be able to run a complete demo using this dataset.
+
+Clearly label synthetic/demo data.
+
+==================================================
+MODULE 17 — ERROR HANDLING
+==================================================
+
+Handle:
+
+• Invalid files
+• Missing columns
+• Corrupted data
+• Invalid values
+• Optimization failures
+• Safety constraint failures
+• Simulation failures
+• AI API failures
+
+The application should fail gracefully.
+
+AI failure must NOT break the traffic analytics engine.
+
+==================================================
+MODULE 18 — CODE QUALITY
+==================================================
+
+Follow:
+
+• Clean architecture
+• PEP 8
+• Type hints
+• Small functions
+• Clear module boundaries
+• Reusable utilities
+• Meaningful names
+• No duplicated logic
+• No hard-coded secrets
+
+Do not introduce unnecessary frameworks.
+
+Keep the project appropriate for a hackathon.
+
+==================================================
+MODULE 19 — TESTING
+==================================================
+
+Create tests for:
+
+• Data validation
+• Peak detection
+• V/C calculation
+• Bottleneck ranking
+• Signal optimization
+• Safety validation
+• Simulation
+• What-if analysis
+
+Include realistic edge cases.
+
+Test that:
+
+• Invalid data is rejected
+• Signal timings satisfy constraints
+• Simulation produces reproducible results
+• AI failure does not break the application
+
+==================================================
+MODULE 20 — SECURITY
+==================================================
+
+Never hard-code:
+
+• Azure API keys
+• API credentials
+• Secrets
+
+Use environment variables.
+
+Validate uploaded files.
+
+Do not expose credentials in the frontend.
+
+==================================================
+MODULE 21 — IMPLEMENTATION STRATEGY
+==================================================
+
+DO NOT attempt to build everything blindly in one step.
+
+First inspect the existing skeleton.
+
+Then implement incrementally:
+
+PHASE 1
+Existing skeleton verification
+
+PHASE 2
+Data ingestion + validation
+
+PHASE 3
+Analytics engine
+
+PHASE 4
+Bottleneck detection
+
+PHASE 5
+Signal optimization
+
+PHASE 6
+Safety validation
+
+PHASE 7
+Simulation
+
+PHASE 8
+Dashboard integration
+
+PHASE 9
+AI explanation
+
+PHASE 10
+Reports
+
+PHASE 11
+Testing + polishing
+
+After each phase:
+
+• Run the application
+• Run tests
+• Fix errors
+• Verify the feature
+• Do not break previously working features
+
+==================================================
+IMPORTANT PRODUCT RULE
+==================================================
+
+Prioritize a COMPLETE WORKING MVP over adding many features.
+
+The winning demo should prove:
+
+REALISTIC DATA
+↓
+CONGESTION DISCOVERY
+↓
+BOTTLENECK
+↓
+SIGNAL RECOMMENDATION
+↓
+SAFETY VALIDATION
+↓
+SIMULATED BEFORE/AFTER IMPROVEMENT
+↓
+EXPLAINABLE AI RATIONALE
+
+This end-to-end flow is more important than decorative features.
+
+==================================================
+FINAL ACCEPTANCE TEST
+==================================================
+
+Before considering the project complete, run this scenario:
+
+1. Launch application.
+2. Load synthetic dataset.
+3. Validate data.
+4. Identify peak congestion.
+5. Identify bottleneck.
+6. Open bottleneck details.
+7. Generate signal timing recommendation.
+8. Validate safety constraints.
+9. Run before/after simulation.
+10. Run traffic-demand what-if analysis.
+11. Generate AI explanation.
+12. Export PDF report.
+13. Export recommendation CSV.
+
+The entire workflow must work without manual code changes.
+
+At the end, provide:
+
+• What was implemented
+• What remains
+• How to run it
+• Environment variables required
+• Test results
+• Known limitations
+• Recommended next steps
+
+DO NOT claim a feature is complete unless it actually works.
+
+Start by inspecting the existing MetroFlow AI skeleton and the uploaded project documents. Then implement the MVP incrementally.

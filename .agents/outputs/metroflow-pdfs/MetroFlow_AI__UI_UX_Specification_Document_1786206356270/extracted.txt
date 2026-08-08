@@ -1,0 +1,677 @@
+
+--- PAGE 1 ---
+MetroFlow AI: UI/UX Specification 
+Document 
+Version: 1.0 (Hackathon MVP Scope) Date: August 8, 2026 Target Domain: Problem 
+Statement #18 (Smart Infrastructure) Status: Approved for System Design 
+PDF+ 3 
+Table of Contents 
+1.​ Product Overview 
+2.​ Information Architecture 
+3.​ User Personas 
+4.​ End-to-End User Journey 
+5.​ Screen Specifications 
+6.​ Wireframes 
+7.​ Dashboard Design 
+8.​ Data Visualization Guide 
+9.​ GIS / Map Experience 
+10.​Design System 
+11.​Accessibility 
+12.​UX Details 
+13.​Microinteractions 
+14.​Developer Handoff 
+15.​Requirement Traceability Matrix 
+16.​Hackathon Demo Flow 
+17.​Judge Review 
+1. Product Overview 
+Vision 
+To become the global standard for data-driven municipal traffic management, empowering 
+every city to eliminate preventable gridlock through intelligent, explainable, and accessible 
+signal timing optimization. 
+PDF 
+Objectives 
+●​ Automate Bottleneck Detection: Reduce bottleneck identification time from weeks 
+to under 30 seconds.​
+ PDF 
+
+--- PAGE 2 ---
+●​ Optimize Green Split & Coordination: Generate offline signal timing plans that 
+yield an estimated 12%-25% reduction in average intersection delay.​
+ PDF 
+●​ Explainable Recommendations: Provide plain-language narratives powered by AI 
+for every recommended signal change.​
+ PDF 
+●​ Low-Barrier Simulation: Supply "before vs. after" queue and delay simulation 
+estimates without requiring complex micro-simulation software.​
+ PDF 
+Users 
+●​ Primary: Municipal Traffic Engineers, Traffic Operations Center (TOC) Managers.​
+ PDF 
+●​ Secondary: Smart City Consultants, Transportation Planning Agencies.​
+ PDF 
+●​ Tertiary: Civil Engineering Contractors, Municipal Operations Directors.​
+ PDF 
+Scope 
+MetroFlow AI is strictly an offline decision-support tool. It ingests historical traffic volume 
+data, road metadata, and incident logs to automatically detect bottlenecks and compute 
+optimal green-split adjustments. 
+PDF+ 2 
+Non-Goals: 
+●​ The system will NOT directly actuate or interface with live traffic signal controllers.​
+ PDF 
+●​ The system will NOT replace heavy microscopic traffic simulation platforms like 
+VISSIM.​
+ PDF 
+●​ The system explicitly avoids guaranteed improvement claims, stating all metrics as 
+simulations.​
+ PDF+ 1 
+Core Workflow 
+1.​ Data Ingestion: Upload historical counts (CSV) and metadata.​
+ PDF+ 1 
+2.​ Automated Analytics: Parse data to identify peak hours and Volume-to-Capacity 
+(V/C) ratios.​
+ PDF 
+3.​ Optimization Engine: Compute Webster-based cycle lengths and splits.​
+ PDF+ 1 
+
+--- PAGE 3 ---
+4.​ Simulated Validation: Execute M/M/1 queueing models for before/after comparison.​
+ PDF+ 1 
+5.​ AI Rationale & Export: Generate Azure OpenAI engineering narratives and NEMA 
+CSV exports.​
+ PDF+ 1 
+UX Philosophy & Design Principles 
+●​ Engineering Credibility: Zero "black box" decisions; every numerical output must 
+link to a mathematical formula or explicit AI rationale.​
+ PDF 
+●​ Simplicity: Intuitive design allowing a trained traffic analyst to complete a workflow in 
+under 5 minutes.​
+ PDF 
+●​ Safety Primacy: UI must hardcode and prominently display statutory safety bounds 
+(e.g., minimum pedestrian walk times).​
+ PDF 
+2. Information Architecture 
+Sitemap & Navigation Hierarchy 
+●​ Global Navigation: Workspace Selector, Municipal Account Profile, Notifications.​
+ PDF 
+●​ Dashboard (Home): Active Retiming Projects Grid, System KPIs.​
+ PDF 
+○​ Project Workspace: 
+■​ Step 1: Data Ingestion & Configuration: File Upload, Metadata 
+Entry, Incident Logs.​
+ PDF 
+■​ Step 2: Congestion Analytics: Peak Windows, Bottleneck Heatmap, 
+LOS Charts.​
+ PDF 
+■​ Step 3: Signal Optimization & Simulation: Phase Diagram, Slider 
+Controls, Before/After Metrics, Stress Test Slider.​
+ PDF 
+■​ Step 4: AI Rationale & Export Center: AI Narrative, Controller CSV 
+Preview, PDF Report Export.​
+ PDF 
+User Navigation Diagram 
+Dashboard → Create New Project → Upload CSV & Geometry → Analyze 
+Congestion Map → Optimize Timings → Review Simulation & Safety → Read 
+AI Rationale → Export Reports 
+
+--- PAGE 4 ---
+3. User Personas 
+1. Traffic Engineer (Primary) 
+●​ Name: Marcus Vance, PE​
+ PDF 
+●​ Demographics: Age 44, M.S. in Civil Engineering, 18 years experience.​
+ PDF 
+●​ Goals: Clear corridor bottlenecks, lower intersection Level of Service (LOS) delay 
+grades, defend decisions to city council.​
+ PDF 
+●​ Pain Points: Current static timing plans are 4 years old; Synchro software takes 
+weeks to model; lacks time to manually parse raw CSV logs.​
+ PDF 
+●​ Daily Workflow: Manually cleans loop-detector data, builds models in legacy 
+software, adjusts splits manually.​
+ PDF 
+●​ Success Metrics: Reduction in intersection delay time, compliance with MUTCD 
+standards.​
+ PDF 
+2. Smart City Consultant (Secondary) 
+●​ Name: Elena Rostova​
+ PDF 
+●​ Demographics: Age 35, M.S. in Urban Planning & Data Science, 10 years 
+experience.​
+ PDF 
+●​ Goals: Deliver data-backed signal optimization proposals quickly; demonstrate ROI 
+and emissions reduction.​
+ PDF 
+●​ Pain Points: Municipal data is fragmented; clients lack budget for expensive 
+real-time adaptive systems (e.g., SCATS).​
+ PDF 
+●​ Daily Workflow: Aggregates fragmented data into presentation layers for 
+non-technical city leadership.​
+ PDF 
+●​ Success Metrics: Rapid analysis turnaround, clear visual reporting.​
+ PDF 
+3. Municipal Authority (Tertiary) 
+●​ Title: City DOT Leadership​
+ PDF 
+●​ Goals: Congestion reduction, cost efficiency, public safety compliance, clear 
+reporting metrics.​
+ PDF 
+
+--- PAGE 5 ---
+●​ Pain Points: Traditional retiming projects cost $3,000-$5,000 per intersection and 
+take 6-12 months.​
+ PDF 
+●​ Decision Making Process: Requires transparent, jargon-free executive summaries 
+and guaranteed safety compliance before approving budgets.​
+ PDF 
+4. End-to-End User Journey 
+1. Create Project 
+●​ User Goal: Establish a new workspace for an arterial corridor.​
+ PDF 
+●​ System Action: Provisions secure sandbox.​
+ PDF 
+●​ Output: Empty project dashboard. 
+●​ Next Step: Upload data. 
+2. Upload Dataset & Metadata 
+●​ User Goal: Upload historical 15-minute volume logs and road geometry via CSV.​
+ PDF+ 1 
+●​ System Action: Parses file format, checks against required fields (Timestamp, 
+Intersection_ID, Volume, Speed_Limit).​
+ PDF 
+●​ Output: File upload progress bar and validation indicators.​
+ PDF+ 1 
+●​ Next Step: Validate Data. 
+3. Validate Data 
+●​ User Goal: Ensure data is clean and actionable.​
+ PDF 
+●​ System Action: Detects missing values, duplicates, and unrealistic volumes; 
+interpolates missing 15-minute intervals.​
+ PDF 
+●​ Output: Warning/Error log (e.g., "Warning: Implausible volume at INT_4. Capped at 
+saturation limit.").​
+ PDF 
+●​ Next Step: Traffic Analysis. 
+4. Congestion & Bottleneck Analysis 
+●​ User Goal: Rapidly identify peak congestion windows and bottlenecks.​
+ PDF 
+●​ System Action: Applies a rolling 1-hour sum window to find peak boundaries; 
+calculates V/C ratios.​
+ PDF 
+
+--- PAGE 6 ---
+●​ Output: Corridor heatmap and hourly volume bar charts highlighting V/C > 1.0 (LOS 
+F).​
+ PDF+ 1 
+●​ Next Step: Signal Optimization. 
+5. Signal Optimization & Safety Validation 
+●​ User Goal: Generate better cycle lengths and splits.​
+ PDF 
+●​ System Action: Runs Webster's formula​
+C0​=1−Y1.5L+5​
+ to compute cycle lengths. Intercepts array with Safety_Validator to enforce 
+minimum pedestrian walk times.​
+ PDF+ 3 
+●​ Output: Recommended Phase Diagram and green split distributions.​
+ PDF 
+●​ Next Step: Simulation. 
+6. Simulation & What-If Analysis 
+●​ User Goal: Verify performance gains and stress-test the plan.​
+ PDF 
+●​ System Action: Uses M/M/1 queuing logic to calculate delay/queue reductions; 
+responds to +/- 30% volume stress test slider.​
+ PDF+ 1 
+●​ Output: Side-by-side metric cards (Delay, Queue, LOS) and dynamic slider.​
+ PDF+ 1 
+●​ Next Step: AI Rationale. 
+7. AI Engineering Explanation & Export 
+●​ User Goal: Understand the mathematical rationale and export for field use.​
+ PDF 
+●​ System Action: Passes structured JSON payload to Azure OpenAI to generate 
+plain-text Markdown.​
+ PDF+ 1 
+●​ Output: Narrative text panel and downloadable NEMA-compliant CSV / PDF 
+summary.​
+ PDF+ 1 
+●​ Next Step: Field Implementation (External). 
+5. Screen Specifications 
+Screen 1: Dashboard & Project Management 
+●​ Purpose: Overview of all retiming projects and high-level municipal impact. 
+●​ Layout: Top Header, Left Sidebar, Main Grid area. 
+
+--- PAGE 7 ---
+●​ KPIs: Total Intersections Analyzed, Average Delay Reduced, Last Plan Update Date.​
+ PDF 
+●​ Components: Search Bar, Workspace Selector, Action Button ("+ Create New 
+Corridor Retiming Project").​
+ PDF 
+●​ Empty State: Friendly graphic inviting the user to create their first retiming project. 
+Screen 2: Data Ingestion & Corridor Configuration 
+●​ Purpose: Secure upload and data sanitization interface. 
+●​ Layout: Two-column split layout. 
+●​ Left Panel: Drag-and-drop box for traffic count CSVs and Incident Logs.​
+ PDF 
+●​ Right Panel: Interactive node map for defining road geometry (lanes, speed limits, 
+turning ratios).​
+ PDF 
+●​ Validation Rules: Timestamp format, Volume >= 0, Turn Ratios summing to 1.0.​
+ PDF 
+●​ Error States: Clear, red textual warnings (e.g., "Error: Row 45 timestamp format 
+invalid") preventing analysis progression.​
+ PDF 
+●​ Primary Action: "Parse & Analyze Congestion Data" button.​
+ PDF 
+Screen 3: Congestion Analytics & Bottleneck Dashboard 
+●​ Purpose: Visual diagnosis of historical traffic failures. 
+●​ Layout: Top KPI Ribbon, Center Map, Bottom Charts. 
+●​ KPIs: Peak Hour Identified, Worst Intersection V/C Ratio, Corridor Average Delay.​
+ PDF 
+●​ Visualizations: Arterial corridor map (color-coded red/orange for bottlenecks), 
+Hourly volume bar charts with shaded peak overlay boxes.​
+ PDF+ 1 
+●​ Expected Output: Intersection #4 flagged as primary bottleneck with V/C > 1.0 (LOS 
+F).​
+ PDF+ 1 
+Screen 4: Optimization & Simulation Workbench 
+●​ Purpose: The core engineering interface for testing recommended timings. 
+●​ Layout: Split View. 
+●​ Left Side (Parameters): Interactive phase diagram, slider controls for Cycle Length 
+(90s - 150s) and Phase Green Splits.​
+ PDF 
+○​ OPTIONAL HACKATHON ENHANCEMENT: Interactive Time-Space 
+progression diagram.​
+ PDF+ 1 
+
+--- PAGE 8 ---
+●​ Right Side (Results): Side-by-side "Before vs. After" comparative metrics (Control 
+Delay, Queue Length, Intersection LOS).​
+ PDF 
+●​ Interactive Element: "What-if" Volume Surge Stress Test slider (+/- 30%).​
+ PDF+ 1 
+●​ Tooltips: Explicit disclaimers on queuing models stating "Simulated Estimate - 
+Assumes Stable Flow".​
+ PDF 
+●​ Safety Alerts: Live warnings if manual adjustment breaches minimum pedestrian 
+walk times.​
+ PDF 
+Screen 5: AI Rationale & Report Export Center 
+●​ Purpose: Final review, explanation, and extraction of results. 
+●​ Layout: Two-column view. 
+●​ Left Panel: Markdown-formatted plain-language narrative explaining adjustments 
+(powered by Azure OpenAI).​
+ PDF 
+●​ Right Panel: Live preview of the Controller Parameter Table (NEMA format) and 
+PDF document.​
+ PDF 
+●​ Buttons: "Download Controller Timing Sheet (CSV)", "Download Executive PDF 
+Report".​
+ PDF 
+●​ Expected Outputs: A 2-3 paragraph plain language summary citing explicit 
+simulation assumptions.​
+ PDF+ 1 
+6. Wireframes 
+Screen 3: Congestion Analytics & Bottleneck Dashboard 
+Plaintext 
++-----------------------------------------------------------------------------+ 
+| [MetroFlow AI Logo]   Workspace: Main St Corridor         [User Profile]    | 
++-----------------------------------------------------------------------------+ 
+| [ KPI 1: Peak Hour Identified: 07:45 AM - 09:15 AM ]                        | 
+| [ KPI 2: Worst Intersection V/C Ratio: 1.12 (INT_04) ]                      | 
+| [ KPI 3: Corridor Avg Delay: 68.4 s/veh (LOS E) ]                           | 
++-----------------------------------------------------------------------------+ 
+| CORRIDOR HEATMAP (GIS VIEW)                                                 | 
+|                                                                             | 
+|  (INT_1)======(INT_2)======(INT_3)======[INT_4]======(INT_5)                | 
+|  [LOS B]      [LOS C]      [LOS C]      [LOS F]      [LOS D]                | 
+|                                         ^^^^^^^                             | 
+|                                       BOTTLENECK                            | 
+
+--- PAGE 9 ---
++-----------------------------------------------------------------------------+ 
+| HOURLY VOLUME DISTRIBUTION (7-DAY AVG)                                      | 
+|   |         [==== PEAK AM WINDOW ===]                                       | 
+|   |   ||     ||||||||||||||||||||||||    |||                                | 
+|   |  ||||   ||||||||||||||||||||||||||  |||||       [====== PEAK PM =====]  | 
+|___|__||||___||||||||||||||||||||||||||__|||||_______||||||||||||||||||||||__| 
+|    12 AM            8 AM              12 PM               5 PM              | 
++-----------------------------------------------------------------------------+ 
+|                            [ PROCEED TO OPTIMIZATION > ]                    | 
++-----------------------------------------------------------------------------+ 
+ 
+Explanation: Top ribbon highlights the most critical findings. The heatmap visually grounds 
+the engineer in the spatial reality of the corridor. The bottom chart provides the temporal 
+evidence for the peak window detection, which feeds into the optimization engine. 
+PDF+ 2 
+Screen 4: Optimization & Simulation Workbench 
+Plaintext 
++-----------------------------------------------------------------------------+ 
+| < Back to Congestion Map           SIMULATION WORKBENCH                     | 
++-----------------------------------------------------------------------------+ 
+| TIMING PARAMETERS                  |  BEFORE VS AFTER SIMULATION            | 
+|                                    |                                        | 
+| Recommended Cycle: [ 120s v ]      |  [Avg Control Delay (sec/veh)]         | 
+|                                    |  Before: 68.4s   ->  After: 42.1s      | 
+| Phase 2 (EB Through): [==|===] 45s |  [-38% Reduction]                      | 
+| Phase 4 (Pedestrian): [||====] 18s |                                        | 
+|  ! Locked: Minimum Safety Reached  |  [Queue Length (meters)]               | 
+|                                    |  Before: 120m    ->  After: 75m        | 
+| OPTIONAL HACKATHON ENHANCEMENT:    |  [-35% Reduction]                      | 
+| [ Time-Space Progression Graph ]   |                                        | 
+|                                    |  [Intersection LOS]                    | 
+|                                    |  Before: LOS E   ->  After: LOS D      | 
+|------------------------------------+----------------------------------------| 
+| VOL SURGE STRESS TEST: -30% [========O======] +30%    (Currently +0%)       | 
+| *Disclaimer: Simulated estimate based on steady-state arrivals.             | 
++-----------------------------------------------------------------------------+ 
+ 
+PDF+ 4 
+Explanation: The split layout ensures that any adjustment made on the left side (Parameters) 
+instantly reflects in the mathematical output on the right side (Simulation). The safety 
+guardrail is visually enforced with a lock icon. The stress test slider provides interactive 
+validation. 
+PDF+ 3 
+
+--- PAGE 10 ---
+7. Dashboard Design 
+The dashboard must reflect premium enterprise SaaS analytics, avoiding cluttered visuals. 
+●​ KPIs: Placed at the top for immediate executive visibility. Use large typography for 
+numbers (e.g., 1.12 V/C) and smaller semantic text for units. 
+●​ Cards: Use subtle shadows and rounded corners (Border radius: 8px) to contain 
+discrete metrics (e.g., Delay Reduction). 
+●​ Heatmaps/Maps: Use a dark-mode base map by default to allow brightly colored 
+intersection nodes (Red = Bottleneck, Green = Free Flow) to stand out sharply.​
+ PDF 
+●​ Alerts/Status Indicators: Strict semantic coloring. Red for LOS F/Safety breaches, 
+Yellow for LOS D-E, Green for LOS A-C. 
+●​ Recommended Actions: Action buttons should be high-contrast and logically placed 
+at the bottom right of the screen flow to guide the user to the next step. 
+●​ Why every widget exists: To map directly to a user story, prioritizing rapid 
+decision-making and defensible engineering reporting over decorative elements.​
+ PDF 
+8. Data Visualization Guide 
+●​ Traffic Volume & Hourly Trend: Bar Chart with Overlay Box. The bar chart 
+accurately reflects discrete hourly volume aggregation, while a shaded overlay 
+clearly delineates the algorithmic clustering of the "Peak Window".​
+ PDF+ 1 
+●​ Queue Length & Delay: Side-by-Side Metric Delta Cards. The core value 
+proposition is the "Before vs. After" comparison. A simple side-by-side layout with a 
+percentage reduction badge is the fastest way to communicate ROI.​
+ PDF 
+●​ Congestion Severity (LOS) & V/C Ratio: Node-based GIS Heatmap. Traffic 
+engineers think spatially. Mapping V/C ratios directly onto intersection nodes on a 
+linear corridor instantly reveals where the system is failing (e.g., INT_04).​
+ PDF+ 1 
+●​ Signal Timing Comparison: Horizontal Stacked Bar Chart (Phase Diagram). 
+Maps directly to industry-standard NEMA ring-and-barrier diagrams, showing how the 
+total cycle length is sliced into green, yellow, and red intervals. 
+●​ OPTIONAL HACKATHON ENHANCEMENT - Simulation / Progression: Time-Space 
+Diagram. Shows distance on the Y-axis and time on the X-axis, allowing engineers to 
+visually trace the green wave (platoon progression) across the arterial.​
+ PDF+ 1 
+9. GIS / Map Experience 
+●​ Map Style: Minimalist vector map (e.g., Mapbox Dark) stripped of unnecessary POIs 
+to focus solely on road geometry. 
+●​ Intersection Markers: Circular nodes located at exact geocoordinates. 
+
+--- PAGE 11 ---
+●​ Severity Colors: 
+○​ V/C < 0.85 (Green) 
+○​ V/C 0.85 - 0.99 (Yellow) 
+○​ V/C > 1.0 (Red)​
+ PDF+ 1 
+●​ Hover Cards: Hovering over a node displays its ID (e.g., INT_04), Approach 
+Direction (Eastbound), Lanes, and Baseline Control Delay.​
+ PDF 
+●​ Legend: Standardized HCM LOS color coding (A-F). 
+●​ Map Interactions: Pan, Zoom, and Click-to-select intersection for deep-dive 
+analysis. 
+10. Design System 
+●​ Typography: Inter or Roboto. Sans-serif, highly legible at small sizes for data tables. 
+Monospace font (e.g., Fira Code) for raw JSON or CSV previews. 
+●​ Primary Colors: Professional Blue (#0F52BA) for primary actions and highlights to 
+establish engineering credibility. 
+●​ Semantic Colors: 
+○​ Success/Safe/LOS A: Green (#10B981) 
+○​ Warning/LOS D: Yellow/Orange (#F59E0B) 
+○​ Critical/LOS F/Safety Breach: Red (#EF4444)​
+ PDF 
+●​ Spacing & Grid: 8pt grid system. 24px padding within cards. 
+●​ Components: 
+○​ Buttons: Solid fill for primary, outlined for secondary. 
+○​ Forms: Floating label text inputs for geometry entry. 
+○​ Tables: Striped rows for CSV data validation previews to aid horizontal 
+reading. 
+●​ Border Radius: 8px for modern, soft-edged professional UI. 
+●​ Shadows: Soft drop-shadows on floating elements (hover cards, tooltips). 
+11. Accessibility 
+●​ WCAG 2.1 AA Compliance: Minimum contrast ratio of 4.5:1 for all text against 
+backgrounds. 
+●​ Color Contrast: Critical UI elements (like bottlenecks) must not rely on color alone; 
+use icons or text labels (e.g., explicitly stating "LOS F") alongside the red color. 
+●​ Keyboard Navigation: Fully tab-navigable interface, prioritizing the sequential user 
+journey flow. 
+●​ Focus States: High-visibility blue focus rings (box-shadow: 0 0 0 3px 
+rgba(15, 82, 186, 0.5)) around active sliders and inputs. 
+●​ Dark Mode: Supported natively, as TOC command centers often operate in low-light 
+environments.​
+ PDF 
+
+--- PAGE 12 ---
+12. UX Details 
+●​ Empty States: When a project is created but no CSV is uploaded, display an 
+illustration of a traffic intersection with a clear "Upload CSV to Begin" prompt. 
+●​ Loading States: Use skeleton screens matching the final layout (e.g., pulsing grey 
+bars where the bar chart will appear) instead of generic spinners during the 5-second 
+optimization calculation.​
+ PDF 
+●​ Error Handling: Inline validation during CSV upload. If turning ratios sum to > 1.0, 
+highlight the specific cell in red and disable the "Analyze" button.​
+ PDF 
+●​ Toast Notifications: Non-intrusive bottom-right toasts for background actions (e.g., 
+"NEMA CSV Exported Successfully"). 
+13. Microinteractions 
+●​ File Upload: Dropzone border dashes animate and background color dims slightly 
+upon dragenter. 
+●​ Charts: Bars in the hourly volume chart grow from the X-axis upon page load. 
+●​ Simulation Slider: Moving the "What-If" volume surge slider causes the queue 
+length numbers to smoothly tick up/down rather than flashing instantly, visually 
+reinforcing the mathematical relationship.​
+ PDF+ 1 
+●​ Safety Lock: Attempting to drag a green split slider below the pedestrian minimum 
+triggers a subtle horizontal "shake" animation on the slider handle, accompanied by a 
+visual lock icon.​
+ PDF 
+14. Developer Handoff 
+Step 3: Congestion Analysis API 
+●​ Expected Input Data: Aggregated 15-minute volume JSON arrays.​
+ PDF 
+●​ Expected Backend API: Python temporal cluster analysis.​
+ PDF 
+●​ Output Data: peak_window_start, peak_window_end, max_vc_ratio, 
+bottleneck_node_id.​
+ PDF 
+Step 4: Optimization API 
+●​ Expected Input Data: Critical lane volumes, clearance lost times (L), min pedestrian 
+times.​
+ PDF 
+
+--- PAGE 13 ---
+●​ Expected Backend API: Deterministic Python engine (Webster's formula).​
+ PDF 
+●​ Output Data: JSON array of phase allocations (phase_2_green: 45s). 
+●​ Validation Rules: Calculated_Green[Phase] >= Min_Ped_Walk[Phase].​
+ PDF 
+Step 5: AI Rationale API 
+●​ Expected Input Data: Structured JSON containing before/after metrics. 
+●​ Expected Backend API: Azure OpenAI prompt endpoint.​
+ PDF+ 1 
+●​ Expected Result: Markdown string (e.g., "Green time for Phase 2 was increased by 
+14 seconds... Minimum pedestrian clearance times were strictly preserved at 18 
+seconds."). Constraint: LLM must NOT calculate math.​
+ PDF+ 3 
+15. Requirement Traceability Matrix 
+Requirement 
+Screen 
+UI 
+Component 
+User Action 
+Expected Result 
+FR-A01: CSV 
+Upload 
+PDF 
+Data 
+Ingestion 
+Drag/Drop 
+Zone 
+Upload File 
+Parses file, validates 
+format. 
+PDF 
+FR-B02: Peak 
+Congestion 
+PDF 
+Congestion 
+Map 
+Bar Chart 
+Overlay 
+View Screen 
+Highlights AM/PM 
+peaks. 
+PDF+ 1 
+FR-B01: V/C 
+Ratio > 1.0 
+PDF 
+Congestion 
+Map 
+Heatmap 
+Node 
+Hover over 
+INT_04 
+Displays V/C 1.12, 
+flags Bottleneck. 
+PDF+ 1 
+FR-C04: Safety 
+Lower-bounds 
+PDF 
+Optimization 
+Slider / Lock 
+Icon 
+Try reducing 
+green below 
+min 
+Slider stops, displays 
+"Locked" warning. 
+PDF+ 1 
+FR-D01: Queuing 
+Simulation 
+PDF 
+Optimization 
+Metric Delta 
+Cards 
+View Screen 
+Shows before/after 
+delay reductions. 
+PDF 
+
+--- PAGE 14 ---
+FR-D04: What-if 
+Volume Surge 
+PDF 
+Optimization 
+Interactive 
+Slider 
+Drag slider to 
++20% 
+UI updates 
+dynamically, 
+recalculates queue. 
+PDF+ 1 
+FR-E01: AI 
+Explanations 
+PDF 
+AI Rationale 
+Markdown 
+Panel 
+Read Text 
+Plain English 
+explanation of splits. 
+PDF+ 1 
+FR-E03/04: 
+Report Exports 
+PDF 
+AI Rationale 
+Download 
+Buttons 
+Click "Export 
+PDF" 
+Downloads executive 
+summary and NEMA 
+CSV. 
+PDF 
+16. Hackathon Demo Flow 
+Ideal 5-Minute Script: 
+1.​ Transition 1 (Screen 1 & 2 - 45 seconds): 
+○​ Action: Presenter logs in and drags a CSV onto the upload zone. 
+○​ Narration: "Cities waste months manually identifying traffic patterns. We just 
+uploaded 7 days of raw count data for Main Street. MetroFlow AI instantly 
+cleans and processes it." 
+2.​ Transition 2 (Screen 3 - 60 seconds): 
+○​ Action: Screen reveals the Corridor Heatmap. Presenter hovers over 
+Intersection 4. 
+○​ Narration: "Instantly, we see our AM Peak is 7:45 to 9:15, and our primary 
+bottleneck is Intersection 4, failing with a V/C ratio of 1.12. Let's fix this." 
+3.​ Transition 3 (Screen 4 - 90 seconds): 
+○​ Action: Click to Optimization Workbench. Adjust the What-If slider. Attempt to 
+reduce pedestrian time. 
+○​ Narration: "Our offline engine applies Webster's method, redistributing green 
+time to the saturated Eastbound approach. Watch as I drag the 'What-If' slider 
+to simulate a 20% traffic surge—the model recalculates dynamically. If I try to 
+reduce green time below the pedestrian minimum walk time... the system 
+locks it. Safety is hardcoded." 
+4.​ Transition 4 (Screen 5 - 60 seconds): 
+○​ Action: Reveal the AI summary text and click the Export PDF button. 
+○​ Narration: "Finally, we use Azure OpenAI to translate these complex queuing 
+dynamics into a plain-language executive summary, explicit assumptions 
+included. We export the NEMA controller file, and we're ready for field 
+programming in under 5 minutes." 
+
+--- PAGE 15 ---
+5.​ Judge Takeaway: The solution is highly practical, directly solves municipal pain 
+points, enforces safety, and is ready to deploy offline without hardware risk. 
+17. Judge Review 
+Acting as a Hackathon Judge evaluating this UI/UX Specification: 
+Weaknesses & Limitations 
+●​ Reliance on Static CSVs: The UI relies on the user uploading clean, structured CSV 
+data, whereas real municipal loop detector data is notoriously messy.​
+ PDF 
+●​ Queuing Model Limitations: UI must make it incredibly obvious that M/M/1 queuing 
+equations under-predict delay during extreme oversaturated conditions (V/C>1.2).​
+ PDF 
+Missing Features / UI Considerations 
+●​ Pedestrian & Bicycle Phasing: The UI heavily emphasizes vehicular throughput, 
+but engineers legally require detailed interfaces for Flashing Don't Walk (FDW) and 
+bicycle minimums.​
+ PDF 
+Potential Judge Questions 
+●​ Question: "How do you ensure the AI doesn't hallucinate a dangerous signal timing?" 
+●​ Answer: The UI and architecture clearly separate math from text. Python 
+deterministic engines handle all mathematical generation and safety locks; Azure 
+OpenAI solely reads a structured JSON to generate a narrative summary.​
+ PDF+ 1 
+Optional Enhancements Evaluated 
+●​ Automated CSV Data Cleaning UI: Highly recommended to add a pre-analysis 
+screen where users can visualize missing timestamps being interpolated.​
+ PDF 
+●​ Time-Space Progression Diagram: The inclusion of this diagram in the UI greatly 
+elevates the engineering credibility of the platform.​
+ PDF+ 1 
+Hackathon UI/UX Scorecard 
+●​ Innovation: 8/10 (Smart use of LLM for explanation rather than generation) 
+●​ Usability: 9/10 (Clear linear flow, intuitive split-pane optimization screen) 
+●​ Engineering Credibility: 10/10 (Prominent safety locks and explicitly cited 
+assumptions) 
+●​ Demo Quality: 9/10 (Fast time-to-insight, highly visual heatmap) 
+
+--- PAGE 16 ---
+●​ Professional Appearance: 9/10 (SaaS-tier dashboard aesthetics) 
+●​ Hackathon Readiness: 10/10 (Scoped strictly to MVP guidelines) 
+ 
