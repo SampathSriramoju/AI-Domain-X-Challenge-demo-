@@ -2,7 +2,7 @@ import { type ReactNode, useEffect, useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   AlertTriangle, ArrowRight, BarChart3, Check, ChevronRight, CircleHelp,
-  CloudUpload, Download, FileCheck2, FileWarning, Gauge, Info,
+  CloudUpload, Database, Download, FileCheck2, FileWarning, Gauge, Info,
   Lightbulb, LockKeyhole, MapPin, Menu, Network, Play, RefreshCw,
   ShieldCheck, SlidersHorizontal, Sparkles, TrafficCone, Upload, X, Zap
 } from 'lucide-react';
@@ -189,7 +189,46 @@ function UploadPage({ hasActiveDataset }: { hasActiveDataset: boolean }) {
     setLocation('/');
   };
 
-
+  return (
+    <>
+      <PageIntro kicker="Dataset Ingestion" title="Upload Traffic Data" description="Upload offline traffic counts for canonical analysis.">
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => selectFile({ name: 'DEMO DATASET · weekday_counts.csv', text: async () => '' } as any)} data-testid="button-load-demo-data"><Database size={15} /> Load Demo Data</Button>
+          <Button disabled={!hasActiveDataset} onClick={() => setLocation('/')} data-testid="button-view-active-study">View Active Study</Button>
+        </div>
+      </PageIntro>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card className="p-5 md:p-6">
+          <SectionHeading eyebrow="Step 1" title="Select CSV Dataset" />
+          <label className="mb-4 block cursor-pointer rounded-lg border border-dashed border-border bg-muted/40 p-8 text-center transition-colors hover:bg-muted/60">
+            <input type="file" className="hidden" accept=".csv" onChange={(e) => selectFile(e.target.files?.[0])} />
+            <Upload className="mx-auto mb-3 text-muted-foreground" size={24} />
+            <div className="text-sm font-semibold">Select dataset</div>
+            <div className="mt-1 text-xs text-muted-foreground">CSV format, max 50MB</div>
+          </label>
+          <div className="space-y-4">
+            <div className="flex justify-between border-b border-border pb-2 text-sm"><span className="text-muted-foreground">Active file</span><span className="font-mono font-bold text-foreground">{fileName || 'None selected'}</span></div>
+            <div className="flex justify-between border-b border-border pb-2 text-sm"><span className="text-muted-foreground">Detected rows</span><span className="font-mono font-bold text-foreground">{rows}</span></div>
+          </div>
+          <Button className="mt-6 w-full" disabled={upload.isPending || !fileName} onClick={runValidationAndAnalysis} data-testid="button-validate-process">
+            {upload.isPending ? <><RefreshCw className="animate-spin" size={15} /> Processing dataset...</> : 'Validate & Process Dataset'}
+          </Button>
+          {upload.isError && (
+            <div className="mt-4 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+              <span className="font-bold">Dataset processing failed during analysis:</span> {((upload.error as any)?.data?.message) || ((upload.error as any)?.message) || 'Unknown error'}
+            </div>
+          )}
+        </Card>
+        {validated && (
+          <Card className="p-5 md:p-6">
+            <SectionHeading eyebrow="Step 2" title="Analysis Pipeline Status" />
+            <ValidationResult result={validated} onProceed={proceedToAnalysis} />
+          </Card>
+        )}
+      </div>
+    </>
+  );
+}
 
 function ValidationResult({ result, onProceed }: { result: any; onProceed: () => void }) {
   const valid = result.status === 'valid' || result.status === 'warning';

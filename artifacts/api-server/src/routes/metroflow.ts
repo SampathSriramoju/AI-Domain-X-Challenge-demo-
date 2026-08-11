@@ -199,7 +199,14 @@ function buildAnalysis(rows: TrafficRow[], filename: string) {
   const peak = getPeak(rows);
   const days = getAverageDays(rows);
   const byIntersection = new Map<string, TrafficRow[]>();
-  rows.forEach((row) => byIntersection.set(row.intersectionId, [...(byIntersection.get(row.intersectionId) ?? []), row]));
+  rows.forEach((row) => {
+    let arr = byIntersection.get(row.intersectionId);
+    if (!arr) {
+      arr = [];
+      byIntersection.set(row.intersectionId, arr);
+    }
+    arr.push(row);
+  });
   const orderedIds = [...byIntersection.keys()].sort();
 
   const intersections = orderedIds.map((id, index) => {
