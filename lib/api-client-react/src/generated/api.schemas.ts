@@ -13,6 +13,8 @@ export interface TrafficUploadInput {
   filename: string;
   /** @minimum 0 */
   rows: number;
+  /** UTF-8 CSV content. Omitted only for metadata-only validation. */
+  content?: string;
   hasRequiredColumns?: boolean;
 }
 
@@ -30,63 +32,6 @@ export interface TrafficPreviewRow {
   intersectionId: string;
   approach: string;
   volume: number;
-}
-
-export interface UploadValidation {
-  status: UploadValidationStatus;
-  rowsProcessed: number;
-  warnings: string[];
-  errors: string[];
-  preview: TrafficPreviewRow[];
-}
-
-export interface SimulationInput {
-  /**
-     * @minimum 0.7
-     * @maximum 1.3
-     */
-  demandMultiplier: number;
-}
-
-export interface SimulationMetrics {
-  delay: number;
-  queue: number;
-  los: string;
-  throughput: number;
-  reduction: number;
-}
-
-export interface SimulationResult {
-  demandMultiplier: number;
-  baseline: SimulationMetrics;
-  recommended: SimulationMetrics;
-  limitations: string;
-}
-
-export interface RationaleInput {
-  intersectionId: string;
-  peakWindow: string;
-  vcRatio: number;
-  cycleBefore: number;
-  cycleAfter: number;
-  phaseBefore: number;
-  phaseAfter: number;
-  delayBefore: number;
-  delayAfter: number;
-  safetyStatus: string;
-}
-
-export type RationaleResultSource = typeof RationaleResultSource[keyof typeof RationaleResultSource];
-
-
-export const RationaleResultSource = {
-  'deterministic-fallback': 'deterministic-fallback',
-  ai: 'ai',
-} as const;
-
-export interface RationaleResult {
-  source: RationaleResultSource;
-  markdown: string;
 }
 
 export interface ProjectSummary {
@@ -190,5 +135,77 @@ export interface MetroflowDemo {
   phases: PhaseTiming[];
   assumptions: string[];
   activities: Activity[];
+}
+
+export interface UploadValidation {
+  status: UploadValidationStatus;
+  rowsProcessed: number;
+  warnings: string[];
+  errors: string[];
+  preview: TrafficPreviewRow[];
+  analysis?: MetroflowDemo;
+}
+
+export interface SimulationInput {
+  /**
+     * @minimum 0.7
+     * @maximum 1.3
+     */
+  demandMultiplier: number;
+  baselineDelay?: number;
+  baselineQueue?: number;
+  baselineThroughput?: number;
+  recommendedDelay?: number;
+  recommendedQueue?: number;
+  recommendedThroughput?: number;
+}
+
+export interface SimulationMetrics {
+  delay: number;
+  queue: number;
+  los: string;
+  throughput: number;
+  reduction: number;
+}
+
+export interface SimulationResult {
+  demandMultiplier: number;
+  baseline: SimulationMetrics;
+  recommended: SimulationMetrics;
+  limitations: string;
+}
+
+export interface RationaleInput {
+  intersectionId: string;
+  peakWindow: string;
+  vcRatio: number;
+  cycleBefore: number;
+  cycleAfter: number;
+  phaseBefore: number;
+  phaseAfter: number;
+  delayBefore: number;
+  delayAfter: number;
+  safetyStatus: string;
+  demand?: number;
+  capacity?: number;
+  queue?: number;
+  currentSignal?: string;
+  recommendedSignal?: string;
+  simulationBefore?: SimulationMetrics;
+  simulationAfter?: SimulationMetrics;
+  assumptions?: string[];
+}
+
+export type RationaleResultSource = typeof RationaleResultSource[keyof typeof RationaleResultSource];
+
+
+export const RationaleResultSource = {
+  'deterministic-fallback': 'deterministic-fallback',
+  ai: 'ai',
+} as const;
+
+export interface RationaleResult {
+  source: RationaleResultSource;
+  markdown: string;
 }
 

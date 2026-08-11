@@ -1,0 +1,683 @@
+You are the Senior Software Architect and Principal Engineer for MetroFlow AI.
+
+CRITICAL BUG TO FIX:
+
+The application currently appears to show the same results even when different
+traffic datasets are uploaded.
+
+This happens in BOTH:
+
+1. Main Dashboard
+2. Corridor Analysis
+
+Therefore, do NOT fix only the UI.
+
+Audit and fix the ENTIRE data-to-analysis pipeline.
+
+============================================================
+SOURCE OF TRUTH
+============================================================
+
+Use the existing project documents in the repository:
+
+1. Official Hackathon Problem Statement
+2. PRD
+3. Data & Analytics Specification
+4. UI/UX Specification
+5. Software Architecture / Technical Design
+
+Follow the official Problem Statement first.
+
+Do not add unrelated features.
+
+============================================================
+PART 1 — TRACE THE COMPLETE DATA PIPELINE
+============================================================
+
+Trace the actual code path:
+
+USER UPLOAD
+    ↓
+CSV PARSER
+    ↓
+VALIDATION
+    ↓
+VALIDATED DATAFRAME
+    ↓
+PREPROCESSING
+    ↓
+CORRIDOR ANALYSIS
+    ↓
+INTERSECTION ANALYSIS
+    ↓
+PEAK DETECTION
+    ↓
+BOTTLENECK DETECTION
+    ↓
+SIGNAL OPTIMIZATION
+    ↓
+SIMULATION
+    ↓
+RATIONALE
+    ↓
+DASHBOARD
+    ↓
+REPORT
+
+Find exactly where the application stops using the uploaded dataset.
+
+Look specifically for:
+
+• hard-coded demo data
+• seeded demo metrics
+• default corridor objects
+• sample JSON
+• sample CSV
+• hard-coded intersection names
+• hard-coded peak windows
+• hard-coded V/C
+• hard-coded delay
+• hard-coded recommendations
+• hard-coded rationale
+• cached analysis
+• stale Streamlit session_state
+• incorrect memoization
+• fallback data being used even after valid upload
+• dashboard reading a static object
+• corridor analysis reading a different data source
+• analysis functions receiving old data
+• global variables containing previous analysis
+• initialization code that overwrites uploaded data
+
+Do not guess.
+
+Identify the exact files/functions causing the problem.
+
+============================================================
+PART 2 — USER DATA MUST HAVE PRIORITY
+============================================================
+
+The application may have synthetic/demo data.
+
+That is allowed ONLY when no user dataset exists.
+
+Priority must be:
+
+USER UPLOADED DATA
+        >
+DEMO DATA
+
+Once a valid user dataset is uploaded:
+
+NO demo dataset may influence the analysis.
+
+The application must never silently combine:
+
+user data + demo data.
+
+============================================================
+PART 3 — DYNAMIC DASHBOARD
+============================================================
+
+The following must be calculated from the currently active dataset:
+
+• intersection count
+• peak window
+• hourly traffic volume
+• worst V/C
+• worst intersection
+• average delay
+• bottleneck ranking
+• recommendation count
+• recommendation details
+• simulation results
+• AI rationale
+
+If a new dataset is uploaded, these values must be recalculated.
+
+============================================================
+PART 4 — DYNAMIC CORRIDOR ANALYSIS
+============================================================
+
+The Corridor Analysis page must ALSO use the currently uploaded dataset.
+
+It must dynamically calculate:
+
+• total corridor volume
+• hourly demand
+• peak period
+• peak demand
+• intersection ranking
+• bottleneck ranking
+• congestion severity
+• V/C where supported
+• delay where supported
+• queue where supported
+• directional demand
+• recommended review priority
+
+Do NOT use fixed corridor values.
+
+Do NOT use a hard-coded corridor such as:
+
+"Main & 5th"
+
+unless the uploaded road metadata explicitly maps an intersection to that
+name.
+
+If the dataset contains:
+
+INT_01
+INT_02
+INT_03
+INT_04
+INT_05
+
+then use those IDs.
+
+============================================================
+PART 5 — PEAK DETECTION
+============================================================
+
+Peak detection must come from the uploaded timestamps and traffic volumes.
+
+Do NOT hard-code:
+
+07:45–09:15
+
+or any other time.
+
+The algorithm must be deterministic and reproducible.
+
+Document:
+
+• aggregation interval
+• peak calculation method
+• ranking method
+• tie handling
+
+============================================================
+PART 6 — BOTTLENECK DETECTION
+============================================================
+
+Bottleneck detection must be data-driven.
+
+Do NOT choose a bottleneck using:
+
+• fixed intersection ID
+• fixed ranking
+• UI default
+• demo value
+
+Calculate the relevant traffic metrics from the uploaded dataset.
+
+The application should be able to answer:
+
+"Why was this intersection ranked first?"
+
+Display the evidence:
+
+Intersection
+Peak demand
+Capacity
+V/C
+Delay
+Queue
+LOS if available
+Peak period
+
+============================================================
+PART 7 — UNIT CONSISTENCY
+============================================================
+
+Audit every traffic calculation.
+
+The uploaded traffic data may be:
+
+vehicles / 15 minutes
+
+while capacity may be:
+
+vehicles / hour / lane.
+
+Make sure conversions are mathematically correct.
+
+Document all assumptions.
+
+Never compare incompatible units.
+
+============================================================
+PART 8 — SIGNAL OPTIMIZATION
+============================================================
+
+Signal timing recommendations must use deterministic engineering logic.
+
+The LLM must NOT calculate:
+
+• cycle length
+• green split
+• V/C
+• delay
+• queue
+• capacity
+• safety constraints
+
+Verify:
+
+sum of phase timings
++
+yellow
++
+clearance/lost time
+=
+cycle length
+
+for both current and recommended plans.
+
+If cycle length remains unchanged while one green phase increases,
+another component must decrease accordingly.
+
+Do not display mathematically inconsistent recommendations.
+
+============================================================
+PART 9 — SIMULATION
+============================================================
+
+Simulation must use:
+
+CURRENT SIGNAL PLAN
+versus
+RECOMMENDED SIGNAL PLAN
+
+using actual calculated values.
+
+Do not hard-code:
+
+• 68.4 seconds
+• 61.0 seconds
+• 11%
+• queue reduction
+• LOS improvement
+
+Calculate them from the simulation.
+
+Every output must say:
+
+SIMULATED ESTIMATE
+
+and display:
+
+• assumptions
+• model
+• inputs
+• limitations
+
+============================================================
+PART 10 — SESSION STATE / CACHE
+============================================================
+
+This is especially important for Streamlit.
+
+Audit:
+
+st.session_state
+st.cache_data
+st.cache_resource
+global variables
+memoized functions
+stored analysis objects
+
+When the user uploads a new valid dataset:
+
+1. Replace the active dataset.
+2. Clear stale analysis.
+3. Clear stale recommendations.
+4. Clear stale simulation.
+5. Clear stale rationale.
+6. Re-run validation.
+7. Re-run analysis.
+8. Rebuild dashboard metrics.
+
+The previous dataset must not remain active.
+
+============================================================
+PART 11 — DATASET SWITCH TEST
+============================================================
+
+Create two test datasets with intentionally different traffic patterns.
+
+Dataset A:
+
+INT_01 is the busiest intersection.
+
+Dataset B:
+
+INT_04 is the busiest intersection.
+
+Upload Dataset A.
+
+Record:
+
+• peak
+• bottleneck
+• V/C
+• delay
+• corridor volume
+
+Then upload Dataset B.
+
+The application MUST update.
+
+If it still displays Dataset A results, continue debugging until fixed.
+
+Do not fake the result.
+
+============================================================
+PART 12 — ENGINEERING RATIONALE IMPROVEMENT
+============================================================
+
+The current rationale is too generic and sometimes appears to contain
+hard-coded/demo conclusions.
+
+Redesign the rationale generation so that it is generated from STRUCTURED
+ANALYTICAL RESULTS.
+
+The rationale should answer five questions:
+
+1. WHAT happened?
+2. WHERE did it happen?
+3. WHY was it identified?
+4. WHAT is recommended?
+5. WHAT does the simulation estimate?
+
+Use this structure:
+
+------------------------------------------------------------
+ENGINEERING FINDING
+------------------------------------------------------------
+
+Intersection:
+[dynamic intersection]
+
+Peak period:
+[dynamic period]
+
+Observed demand:
+[dynamic value]
+
+Capacity:
+[dynamic value]
+
+V/C:
+[dynamic value]
+
+Delay:
+[dynamic value]
+
+Queue:
+[dynamic value]
+
+------------------------------------------------------------
+WHY THIS LOCATION?
+------------------------------------------------------------
+
+Explain the actual metrics that caused the intersection to rank highly.
+
+Example:
+
+"The intersection ranked first because its peak-period V/C ratio
+was X, exceeding the corridor threshold of Y, while estimated delay
+was Z seconds/vehicle."
+
+Do NOT invent thresholds.
+
+Use only thresholds defined in the project methodology.
+
+------------------------------------------------------------
+RECOMMENDATION
+------------------------------------------------------------
+
+Current timing:
+
+[dynamic values]
+
+Recommended timing:
+
+[dynamic values]
+
+Explain exactly what changed and why.
+
+------------------------------------------------------------
+SIMULATION ESTIMATE
+------------------------------------------------------------
+
+Current:
+
+Delay
+Queue
+LOS
+
+Recommended:
+
+Delay
+Queue
+LOS
+
+Estimated change:
+
+[calculated]
+
+Clearly label:
+
+SIMULATED ESTIMATE — NOT A GUARANTEE
+
+------------------------------------------------------------
+ASSUMPTIONS
+------------------------------------------------------------
+
+List the actual assumptions used.
+
+------------------------------------------------------------
+LIMITATIONS
+------------------------------------------------------------
+
+Explain limitations such as:
+
+• historical/synthetic data
+• simplified queue model
+• demand variability
+• incidents
+• pedestrian behavior
+• weather
+• field implementation conditions
+
+Only include limitations relevant to the actual model.
+
+============================================================
+PART 13 — AI EXPLANATION
+============================================================
+
+Azure OpenAI should receive structured analytical results such as:
+
+{
+  intersection_id,
+  peak_period,
+  demand,
+  capacity,
+  vc_ratio,
+  delay,
+  queue,
+  current_signal,
+  recommended_signal,
+  simulation_before,
+  simulation_after,
+  assumptions
+}
+
+The model should explain these results.
+
+The model must NOT generate new numerical values.
+
+Implement safeguards so the explanation cannot contradict the deterministic
+results.
+
+If Azure OpenAI is unavailable:
+
+use a deterministic fallback template generated from the same structured
+results.
+
+============================================================
+PART 14 — REPORT IMPROVEMENT
+============================================================
+
+Improve the exported report.
+
+The report must be based on the current uploaded dataset.
+
+It should contain:
+
+1. Executive Summary
+2. Dataset Information
+3. Analysis Period
+4. Corridor Overview
+5. Peak Congestion
+6. Bottleneck Ranking
+7. Selected Intersection
+8. Current Signal Timing
+9. Recommended Signal Timing
+10. Safety Validation
+11. Before vs After Simulation
+12. AI/Engineering Rationale
+13. Assumptions
+14. Limitations
+15. Offline Recommendation Disclaimer
+
+The report must NOT contain stale/demo results.
+
+Every number in the report must trace back to the current analysis.
+
+============================================================
+PART 15 — UI CONSISTENCY
+============================================================
+
+Make sure all screens use the SAME analysis result.
+
+Dashboard
+Corridor Analysis
+Bottleneck Analysis
+Optimization
+Simulation
+Rationale
+Reports
+
+must all refer to the same active dataset and analysis object.
+
+If Dashboard says INT_03,
+Corridor Analysis must not say INT_04.
+
+If Dashboard says peak 08:00,
+Rationale must not say 07:45 unless they represent clearly different
+calculation windows.
+
+Create a single canonical analysis result/state object if necessary.
+
+============================================================
+PART 16 — REMOVE UNNECESSARY FEATURES
+============================================================
+
+After fixing correctness, identify features that are unrelated to the
+official Problem Statement.
+
+Classify them:
+
+KEEP
+REMOVE
+OPTIONAL
+
+Prioritize:
+
+• traffic analysis
+• bottleneck detection
+• signal recommendation
+• safety validation
+• simulation
+• explanation
+• dashboard
+• reporting
+
+Do not add generic AI features just to make the project look more "AI".
+
+============================================================
+PART 17 — FINAL VALIDATION
+============================================================
+
+After implementation:
+
+Run the application.
+
+Test:
+
+TEST 1
+Upload Dataset A.
+
+TEST 2
+Upload Dataset B.
+
+Verify dashboard changes.
+
+TEST 3
+Verify Corridor Analysis changes.
+
+TEST 4
+Verify bottleneck changes.
+
+TEST 5
+Verify recommendation changes.
+
+TEST 6
+Verify simulation changes.
+
+TEST 7
+Verify rationale changes.
+
+TEST 8
+Verify exported report changes.
+
+TEST 9
+Upload invalid data and ensure previous results are not incorrectly shown.
+
+TEST 10
+Reload application and verify no stale hard-coded analysis appears.
+
+============================================================
+FINAL REPORT
+============================================================
+
+Return:
+
+1. Root cause of the static dashboard.
+2. Root cause of the static Corridor Analysis.
+3. Root cause of any static rationale/report.
+4. Files changed.
+5. Functions changed.
+6. Hard-coded values removed.
+7. Data-flow architecture after the fix.
+8. Tests performed.
+9. Test results.
+10. Remaining limitations.
+11. Unnecessary features identified.
+12. Features that should NOT be added.
+
+IMPORTANT:
+
+DO NOT simply change the displayed numbers.
+
+Fix the underlying data pipeline.
+
+DO NOT fabricate dynamic behavior.
+
+DO NOT rewrite the entire application unnecessarily.
+
+Preserve working components.
+
+Start by auditing the repository before modifying anything.

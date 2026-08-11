@@ -5,6 +5,7 @@
  * MetroFlow AI offline traffic engineering advisory API
  * OpenAPI spec version: 0.1.0
  */
+import type { SimulationMetrics } from './simulationMetrics';
 
 export interface RationaleInput {
   intersectionId: string;
@@ -17,4 +18,12 @@ export interface RationaleInput {
   delayBefore: number;
   delayAfter: number;
   safetyStatus: string;
+  demand?: number;
+  capacity?: number;
+  queue?: number;
+  currentSignal?: string;
+  recommendedSignal?: string;
+  simulationBefore?: SimulationMetrics;
+  simulationAfter?: SimulationMetrics;
+  assumptions?: string[];
 }

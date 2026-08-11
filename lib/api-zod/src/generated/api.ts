@@ -87,6 +87,7 @@ export const uploadMetroflowDataBodyHasRequiredColumnsDefault = true;
 export const UploadMetroflowDataBody = zod.object({
   "filename": zod.string(),
   "rows": zod.number().min(uploadMetroflowDataBodyRowsMin),
+  "content": zod.string().optional().describe('UTF-8 CSV content. Omitted only for metadata-only validation.'),
   "hasRequiredColumns": zod.boolean().default(uploadMetroflowDataBodyHasRequiredColumnsDefault)
 })
 
@@ -100,7 +101,60 @@ export const UploadMetroflowDataResponse = zod.object({
   "intersectionId": zod.string(),
   "approach": zod.string(),
   "volume": zod.number()
+})),
+  "analysis": zod.object({
+  "project": zod.object({
+  "name": zod.string(),
+  "corridor": zod.string(),
+  "datasetLabel": zod.string(),
+  "updatedAt": zod.string()
+}),
+  "kpis": zod.object({
+  "intersections": zod.number(),
+  "peakWindow": zod.string(),
+  "worstVc": zod.number(),
+  "worstIntersection": zod.string(),
+  "averageDelay": zod.number(),
+  "recommendationCount": zod.number()
+}),
+  "hourlyVolume": zod.array(zod.object({
+  "hour": zod.string(),
+  "volume": zod.number(),
+  "peak": zod.enum(['am', 'midday', 'pm', 'off'])
+})),
+  "intersections": zod.array(zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "order": zod.number(),
+  "vc": zod.number(),
+  "los": zod.string(),
+  "delay": zod.number(),
+  "queue": zod.number(),
+  "lanes": zod.number(),
+  "demand": zod.number(),
+  "capacity": zod.number(),
+  "approach": zod.string(),
+  "lat": zod.number(),
+  "lng": zod.number(),
+  "status": zod.enum(['critical', 'watch', 'stable'])
+})),
+  "phases": zod.array(zod.object({
+  "phase": zod.string(),
+  "movement": zod.string(),
+  "currentGreen": zod.number(),
+  "recommendedGreen": zod.number(),
+  "minPed": zod.number(),
+  "yellow": zod.number(),
+  "status": zod.enum(['adjusted', 'locked', 'held'])
+})),
+  "assumptions": zod.array(zod.string()),
+  "activities": zod.array(zod.object({
+  "title": zod.string(),
+  "detail": zod.string(),
+  "time": zod.string(),
+  "tone": zod.enum(['success', 'warning', 'info'])
 }))
+}).optional()
 })
 
 
@@ -113,7 +167,13 @@ export const simulateMetroflowBodyDemandMultiplierMax = 1.3;
 
 
 export const SimulateMetroflowBody = zod.object({
-  "demandMultiplier": zod.number().min(simulateMetroflowBodyDemandMultiplierMin).max(simulateMetroflowBodyDemandMultiplierMax)
+  "demandMultiplier": zod.number().min(simulateMetroflowBodyDemandMultiplierMin).max(simulateMetroflowBodyDemandMultiplierMax),
+  "baselineDelay": zod.number().optional(),
+  "baselineQueue": zod.number().optional(),
+  "baselineThroughput": zod.number().optional(),
+  "recommendedDelay": zod.number().optional(),
+  "recommendedQueue": zod.number().optional(),
+  "recommendedThroughput": zod.number().optional()
 })
 
 export const SimulateMetroflowResponse = zod.object({
@@ -150,7 +210,27 @@ export const GenerateMetroflowRationaleBody = zod.object({
   "phaseAfter": zod.number(),
   "delayBefore": zod.number(),
   "delayAfter": zod.number(),
-  "safetyStatus": zod.string()
+  "safetyStatus": zod.string(),
+  "demand": zod.number().optional(),
+  "capacity": zod.number().optional(),
+  "queue": zod.number().optional(),
+  "currentSignal": zod.string().optional(),
+  "recommendedSignal": zod.string().optional(),
+  "simulationBefore": zod.object({
+  "delay": zod.number(),
+  "queue": zod.number(),
+  "los": zod.string(),
+  "throughput": zod.number(),
+  "reduction": zod.number()
+}).optional(),
+  "simulationAfter": zod.object({
+  "delay": zod.number(),
+  "queue": zod.number(),
+  "los": zod.string(),
+  "throughput": zod.number(),
+  "reduction": zod.number()
+}).optional(),
+  "assumptions": zod.array(zod.string()).optional()
 })
 
 export const GenerateMetroflowRationaleResponse = zod.object({

@@ -12,4 +12,10 @@ export interface SimulationInput {
      * @maximum 1.3
      */
   demandMultiplier: number;
+  baselineDelay?: number;
+  baselineQueue?: number;
+  baselineThroughput?: number;
+  recommendedDelay?: number;
+  recommendedQueue?: number;
+  recommendedThroughput?: number;
 }

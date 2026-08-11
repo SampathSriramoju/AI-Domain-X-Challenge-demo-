@@ -113,6 +113,9 @@ components:
         rows:
           type: number
           minimum: 0
+        content:
+          type: string
+          description: UTF-8 CSV content. Omitted only for metadata-only validation.
         hasRequiredColumns:
           type: boolean
           default: true
@@ -137,6 +140,8 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/TrafficPreviewRow"
+        analysis:
+          $ref: "#/components/schemas/MetroflowDemo"
     TrafficPreviewRow:
       type: object
       required: [timestamp, intersectionId, approach, volume]
@@ -157,6 +162,18 @@ components:
           type: number
           minimum: 0.7
           maximum: 1.3
+        baselineDelay:
+          type: number
+        baselineQueue:
+          type: number
+        baselineThroughput:
+          type: number
+        recommendedDelay:
+          type: number
+        recommendedQueue:
+          type: number
+        recommendedThroughput:
+          type: number
     SimulationResult:
       type: object
       required: [demandMultiplier, baseline, recommended, limitations]
@@ -207,6 +224,24 @@ components:
           type: number
         safetyStatus:
           type: string
+        demand:
+          type: number
+        capacity:
+          type: number
+        queue:
+          type: number
+        currentSignal:
+          type: string
+        recommendedSignal:
+          type: string
+        simulationBefore:
+          $ref: "#/components/schemas/SimulationMetrics"
+        simulationAfter:
+          $ref: "#/components/schemas/SimulationMetrics"
+        assumptions:
+          type: array
+          items:
+            type: string
     RationaleResult:
       type: object
       required: [source, markdown]

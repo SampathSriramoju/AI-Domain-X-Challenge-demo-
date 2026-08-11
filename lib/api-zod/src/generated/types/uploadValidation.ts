@@ -5,6 +5,7 @@
  * MetroFlow AI offline traffic engineering advisory API
  * OpenAPI spec version: 0.1.0
  */
+import type { MetroflowDemo } from './metroflowDemo';
 import type { TrafficPreviewRow } from './trafficPreviewRow';
 import type { UploadValidationStatus } from './uploadValidationStatus';
 
@@ -14,4 +15,5 @@ export interface UploadValidation {
   warnings: string[];
   errors: string[];
   preview: TrafficPreviewRow[];
+  analysis?: MetroflowDemo;
 }

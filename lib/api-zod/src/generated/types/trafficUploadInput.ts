@@ -10,5 +10,7 @@ export interface TrafficUploadInput {
   filename: string;
   /** @minimum 0 */
   rows: number;
+  /** UTF-8 CSV content. Omitted only for metadata-only validation. */
+  content?: string;
   hasRequiredColumns?: boolean;
 }
