@@ -193,7 +193,6 @@ function UploadPage({ hasActiveDataset }: { hasActiveDataset: boolean }) {
     <>
       <PageIntro kicker="Dataset Ingestion" title="Upload Traffic Data" description="Upload offline traffic counts for canonical analysis.">
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => selectFile({ name: 'DEMO DATASET · weekday_counts.csv', text: async () => '' } as any)} data-testid="button-load-demo-data"><Database size={15} /> Load Demo Data</Button>
           <Button disabled={!hasActiveDataset} onClick={() => setLocation('/')} data-testid="button-view-active-study">View Active Study</Button>
         </div>
       </PageIntro>
