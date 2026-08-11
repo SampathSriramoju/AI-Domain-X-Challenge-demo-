@@ -363,17 +363,26 @@ router.post("/metroflow/upload", (req, res): void => {
     warnings.push("Small sample detected (<50 rows). Results reflect provided sample slice.");
   }
 
-  const analysis = errors.length === 0 && parsedRows.length > 0 ? buildAnalysis(parsedRows, filename) : undefined;
-  res.json(UploadMetroflowDataResponse.parse({
-    status: errors.length > 0 ? "error" : warnings.length > 0 ? "warning" : "valid",
-    rowsProcessed: errors.length > 0 ? 0 : (content ? parsedRows.length : rows),
-    warnings,
-    errors,
-    preview,
-    analysis,
-  }));
+  try {
+    const analysis = errors.length === 0 && parsedRows.length > 0 ? buildAnalysis(parsedRows, filename) : undefined;
+    res.json(UploadMetroflowDataResponse.parse({
+      status: errors.length > 0 ? "error" : warnings.length > 0 ? "warning" : "valid",
+      rowsProcessed: errors.length > 0 ? 0 : (content ? parsedRows.length : rows),
+      warnings,
+      errors,
+      preview,
+      analysis,
+    }));
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      stage: "analysis",
+      error_code: "ANALYSIS_PROCESSING_ERROR",
+      message: error.message || "Failed to process the dataset",
+      details: error.stack ? error.stack.split("\n")[0] : String(error)
+    });
+  }
 });
-
 router.post("/metroflow/simulate", (req, res): void => {
   const parsed = SimulateMetroflowBody.safeParse(req.body);
   if (!parsed.success) {
