@@ -18,7 +18,6 @@ const CURRENT_CYCLE = 120;
 const TOTAL_CLEARANCE = 4;
 const MIN_PEDESTRIAN = 18;
 const YELLOW = 4;
-const GREEN_TOTAL = CURRENT_CYCLE - TOTAL_CLEARANCE - YELLOW * 4;
 
 type TrafficRow = {
   timestamp: Date;
@@ -80,36 +79,43 @@ function parseCsv(content: string) {
   const headers = rawHeaders.map(normalizeHeader);
   const find = (...names: string[]) => names.map(normalizeHeader).map((name) => headers.indexOf(name)).find((index) => index >= 0) ?? -1;
   const timestampIndex = find("timestamp", "datetime", "date_time", "time");
-  const intersectionIndex = find("intersection_id", "intersectionid", "intersection");
+  const intersectionIndex = find("intersection_id", "intersectionid", "intersection", "intersection_name", "location");
   const approachIndex = find("approach_direction", "approachdirection", "approach", "direction");
-  const volumeIndex = find("volume", "traffic_volume", "count");
+  const volumeIndex = find("volume", "traffic_volume", "count", "flow", "vph");
   const lanesIndex = find("lane_count", "lanecount", "lanes");
   const capacityIndex = find("capacity", "capacity_vph", "capacityvehperhour");
   const nameIndex = find("intersection_name", "intersectionname", "name");
   const latIndex = find("latitude", "lat");
   const lngIndex = find("longitude", "lng", "lon");
+
   const missing = [
     timestampIndex < 0 ? "Timestamp" : "",
     intersectionIndex < 0 ? "Intersection_ID" : "",
     approachIndex < 0 ? "Approach_Direction" : "",
     volumeIndex < 0 ? "Volume" : "",
   ].filter(Boolean);
+
   if (missing.length > 0) {
-    return { rows: [] as TrafficRow[], errors: [`Missing required columns: ${missing.join(", ")}.`], headers };
+    return { rows: [] as TrafficRow[], errors: [`Missing required columns: ${missing.join(", ")}. Required columns are: Timestamp, Intersection_ID, Approach_Direction, Volume.`], headers };
   }
 
   const errors: string[] = [];
   const rows: TrafficRow[] = [];
   lines.slice(1).forEach((line, rowIndex) => {
     const cells = parseLine(line);
+    if (cells.length === 0 || (cells.length === 1 && !cells[0])) return;
     const timestamp = new Date(cells[timestampIndex]);
     const intersectionId = cells[intersectionIndex]?.trim();
     const approach = cells[approachIndex]?.trim();
     const volume = Number(cells[volumeIndex]);
+
     if (Number.isNaN(timestamp.getTime()) || !intersectionId || !approach || !Number.isFinite(volume) || volume < 0) {
-      errors.push(`Row ${rowIndex + 2} has an invalid timestamp, intersection, approach, or non-negative volume.`);
+      if (errors.length < 5) {
+        errors.push(`Row ${rowIndex + 2} has an invalid timestamp, intersection ID, approach, or volume.`);
+      }
       return;
     }
+
     const lanes = lanesIndex >= 0 ? Number(cells[lanesIndex]) : undefined;
     const capacity = capacityIndex >= 0 ? Number(cells[capacityIndex]) : undefined;
     rows.push({
@@ -124,6 +130,11 @@ function parseCsv(content: string) {
       lng: lngIndex >= 0 ? Number(cells[lngIndex]) || undefined : undefined,
     });
   });
+
+  if (rows.length === 0 && errors.length === 0) {
+    errors.push("No valid traffic data rows could be parsed from the CSV.");
+  }
+
   return { rows, errors, headers };
 }
 
@@ -178,9 +189,9 @@ function buildPhases(worstVc: number, dominantApproach: string) {
   const recommended = [current[0] + delta, current[1], current[2] - delta, current[3]];
   return [
     { phase: "Phase 2", movement: `${dominantApproach} through`, currentGreen: current[0], recommendedGreen: recommended[0], minPed: MIN_PEDESTRIAN, yellow: YELLOW, status: delta === 0 ? ("held" as const) : ("adjusted" as const) },
-    { phase: "Phase 4", movement: "Northbound pedestrian", currentGreen: current[1], recommendedGreen: recommended[1], minPed: MIN_PEDESTRIAN, yellow: YELLOW, status: "locked" as const },
-    { phase: "Phase 6", movement: "Cross-street through", currentGreen: current[2], recommendedGreen: recommended[2], minPed: MIN_PEDESTRIAN, yellow: YELLOW, status: delta === 0 ? ("held" as const) : ("adjusted" as const) },
-    { phase: "Phase 8", movement: "Southbound pedestrian", currentGreen: current[3], recommendedGreen: recommended[3], minPed: MIN_PEDESTRIAN, yellow: YELLOW, status: "locked" as const },
+    { phase: "Phase 4", movement: "Cross-street pedestrian", currentGreen: current[1], recommendedGreen: recommended[1], minPed: MIN_PEDESTRIAN, yellow: YELLOW, status: "locked" as const },
+    { phase: "Phase 6", movement: "Secondary approach through", currentGreen: current[2], recommendedGreen: recommended[2], minPed: MIN_PEDESTRIAN, yellow: YELLOW, status: delta === 0 ? ("held" as const) : ("adjusted" as const) },
+    { phase: "Phase 8", movement: "Side-street pedestrian", currentGreen: current[3], recommendedGreen: recommended[3], minPed: MIN_PEDESTRIAN, yellow: YELLOW, status: "locked" as const },
   ];
 }
 
@@ -190,25 +201,31 @@ function buildAnalysis(rows: TrafficRow[], filename: string) {
   const byIntersection = new Map<string, TrafficRow[]>();
   rows.forEach((row) => byIntersection.set(row.intersectionId, [...(byIntersection.get(row.intersectionId) ?? []), row]));
   const orderedIds = [...byIntersection.keys()].sort();
+
   const intersections = orderedIds.map((id, index) => {
     const intersectionRows = byIntersection.get(id) ?? [];
-    const peakRows = intersectionRows.filter((row) => row.timestamp.getHours() * 60 + row.timestamp.getMinutes() >= peak.start && row.timestamp.getHours() * 60 + row.timestamp.getMinutes() < peak.end);
-    const totalPeakVolume = peakRows.reduce((sum, row) => sum + row.volume, 0) / days;
+    const peakRows = intersectionRows.filter((row) => {
+      const min = row.timestamp.getHours() * 60 + row.timestamp.getMinutes();
+      return min >= peak.start && min < peak.end;
+    });
+    const effectivePeakRows = peakRows.length > 0 ? peakRows : intersectionRows;
+    const totalPeakVolume = effectivePeakRows.reduce((sum, row) => sum + row.volume, 0) / days;
     const demand = totalPeakVolume * 4;
-    const laneValues = intersectionRows.map((row) => row.lanes).filter((value): value is number => Boolean(value));
+    const laneValues = intersectionRows.map((row) => row.lanes).filter((v): v is number => Boolean(v));
     const lanes = laneValues.length ? Math.max(...laneValues) : DEFAULT_LANES;
-    const capacityValues = intersectionRows.map((row) => row.capacity).filter((value): value is number => Boolean(value));
+    const capacityValues = intersectionRows.map((row) => row.capacity).filter((v): v is number => Boolean(v));
     const capacity = capacityValues.length ? Math.max(...capacityValues) : lanes * SATURATION_FLOW * DEFAULT_GREEN_RATIO;
     const vc = demand / Math.max(capacity, 1);
     const delay = 15 + (vc <= 1 ? vc * 30 : 30 + (vc - 1) * 110);
     const queue = Math.max(0, Math.round((demand - capacity) * 0.08 + delay * 1.8));
     const first = intersectionRows[0];
     const approaches = new Map<string, number>();
-    peakRows.forEach((row) => approaches.set(row.approach, (approaches.get(row.approach) ?? 0) + row.volume));
-    const approach = [...approaches.entries()].sort(([, a], [, b]) => b - a)[0]?.[0] ?? first.approach;
+    effectivePeakRows.forEach((row) => approaches.set(row.approach, (approaches.get(row.approach) ?? 0) + row.volume));
+    const approach = [...approaches.entries()].sort(([, a], [, b]) => b - a)[0]?.[0] ?? first?.approach ?? "Main";
+
     return {
       id,
-      name: first.name ?? id,
+      name: first?.name ?? id,
       order: index + 1,
       vc: round(vc, 2),
       los: losFor(vc),
@@ -218,37 +235,41 @@ function buildAnalysis(rows: TrafficRow[], filename: string) {
       demand: Math.round(demand),
       capacity: Math.round(capacity),
       approach,
-      lat: first.lat ?? 0,
-      lng: first.lng ?? 0,
+      lat: first?.lat ?? 0,
+      lng: first?.lng ?? 0,
       status: statusFor(vc),
     };
   });
+
   const ranked = intersections.slice().sort((a, b) => b.vc - a.vc || b.delay - a.delay || a.id.localeCompare(b.id));
   const worst = ranked[0];
-  const dominantApproach = worst?.approach ?? "Eastbound";
+  const dominantApproach = worst?.approach ?? "Dominant";
   const phases = buildPhases(worst?.vc ?? 0, dominantApproach);
+
   const hourlyMap = new Map<number, number>();
   rows.forEach((row) => {
     const hour = row.timestamp.getHours();
     hourlyMap.set(hour, (hourlyMap.get(hour) ?? 0) + row.volume);
   });
+
   const hourlyVolume = Array.from({ length: 24 }, (_, hour) => {
     const volume = Math.round(((hourlyMap.get(hour) ?? 0) / days) * 4);
-    const peakType = hour >= Math.floor(peak.start / 60) && hour <= Math.floor((peak.end - 1) / 60) ? "am" : "off";
+    const peakHourStart = Math.floor(peak.start / 60);
+    const peakHourEnd = Math.floor((peak.end - 1) / 60);
+    const isPeak = hour >= peakHourStart && hour <= peakHourEnd;
+    const peakType = isPeak ? (peakHourStart < 12 ? "am" : "pm") : "off";
     return { hour: `${String(hour).padStart(2, "0")}:00`, volume, peak: peakType as "am" | "midday" | "pm" | "off" };
   });
-  const peakHour = Math.floor(peak.start / 60);
-  hourlyVolume.forEach((entry) => {
-    if (entry.hour === `${String(peakHour).padStart(2, "0")}:00`) entry.peak = peakHour < 12 ? "am" : "pm";
-  });
+
   const avgDelay = intersections.reduce((sum, item) => sum + item.delay, 0) / Math.max(intersections.length, 1);
-  const corridorName = [...new Set(rows.map((row) => row.name).filter(Boolean))].length === 1 ? "Uploaded corridor" : "Uploaded traffic corridor";
+  const corridorName = `${worst?.id ?? "Uploaded"} Corridor`;
   const peakWindow = `${formatClock(peak.start)} – ${formatClock(peak.end)}`;
+
   return GetMetroflowDemoResponse.parse({
     project: {
-      name: "Uploaded corridor signal study",
+      name: `Analysis of ${filename}`,
       corridor: corridorName,
-      datasetLabel: `${filename} · ${rows.length.toLocaleString()} parsed rows`,
+      datasetLabel: `${filename} · ${rows.length.toLocaleString()} rows`,
       updatedAt: new Date().toISOString(),
     },
     kpis: {
@@ -263,16 +284,17 @@ function buildAnalysis(rows: TrafficRow[], filename: string) {
     intersections,
     phases,
     assumptions: [
-      "Traffic Volume is interpreted as vehicles per 15-minute interval and converted to vehicles per hour by multiplying the averaged peak-hour sum by four.",
-      `Capacity uses uploaded capacity when present; otherwise ${SATURATION_FLOW} veh/hr/lane × lane count × a ${Math.round(DEFAULT_GREEN_RATIO * 100)}% effective green ratio.`,
-      "Peak detection uses a deterministic rolling one-hour sum across 15-minute time-of-day buckets; ties resolve to the earliest window.",
-      "Recommendations preserve a 120-second cycle: green totals plus yellow intervals and 4 seconds of clearance equal the cycle.",
-      "Outputs are offline advisory recommendations and simulated estimates only.",
+      `Dataset: ${filename} (${rows.length.toLocaleString()} total observations).`,
+      "Traffic volume is calculated as vehicles/hr from observed intervals.",
+      `Capacity is calculated as ${SATURATION_FLOW} veh/hr/lane × lane count × ${Math.round(DEFAULT_GREEN_RATIO * 100)}% green ratio.`,
+      "Peak window detection finds the highest 60-minute rolling sum.",
+      "Signal timing preserves pedestrian safety minimums and a 120-second cycle.",
+      "All metrics are offline advisory recommendations and simulated estimates.",
     ],
     activities: [
-      { title: "Dataset became active", detail: `${rows.length.toLocaleString()} valid traffic rows drive this analysis.`, time: "now", tone: "success" as const },
-      { title: "Peak window detected", detail: `${peakWindow} · ${Math.round(peak.peakDemand / days)} observed vehicles per 15-minute bucket aggregate`, time: "now", tone: "info" as const },
-      { title: "Bottleneck ranked", detail: `${worst?.id ?? "—"} · V/C ${worst?.vc.toFixed(2) ?? "0.00"} · LOS ${worst?.los ?? "A"}`, time: "now", tone: "warning" as const },
+      { title: "Dataset parsed & active", detail: `${rows.length.toLocaleString()} valid traffic rows drive this canonical analysis.`, time: "now", tone: "success" as const },
+      { title: "Peak window identified", detail: `${peakWindow} · aggregate peak demand identified`, time: "now", tone: "info" as const },
+      { title: "Primary bottleneck ranked", detail: `Worst intersection: ${worst?.id ?? "—"} (V/C: ${worst?.vc.toFixed(2) ?? "0.00"}, Delay: ${worst?.delay.toFixed(1) ?? "0.0"}s, LOS: ${worst?.los ?? "A"})`, time: "now", tone: "warning" as const },
     ],
   });
 }
@@ -287,7 +309,7 @@ const demoRows: TrafficRow[] = Array.from({ length: 5 }, (_, intersectionIndex) 
     name: `Main St & ${[1, 3, 4, 5, 7][intersectionIndex]}th Ave`,
   })),
 ).flat();
-const demo = buildAnalysis(demoRows, "DEMO DATASET · generated 24-hour corridor profile");
+const demo = buildAnalysis(demoRows, "DEMO DATASET · weekday_counts.csv");
 
 function calculateSimulation(input: ReturnType<typeof SimulateMetroflowBody.parse>) {
   const multiplier = input.demandMultiplier;
@@ -303,7 +325,7 @@ function calculateSimulation(input: ReturnType<typeof SimulateMetroflowBody.pars
     demandMultiplier: multiplier,
     baseline: { delay: round(baselineDelay), queue: Math.round(baselineQueue), los: los(baselineDelay), throughput: Math.round(baselineThroughput), reduction: 0 },
     recommended: { delay: round(recommendedDelay), queue: Math.round(recommendedQueue), los: los(recommendedDelay), throughput: Math.round(recommendedThroughput), reduction },
-    limitations: "SIMULATED ESTIMATE · Uses the active dataset's calculated delay, queue, and throughput inputs with a bounded demand multiplier. Actual field results vary with arrivals, pedestrians, incidents, weather, and implementation conditions.",
+    limitations: "SIMULATED ESTIMATE · Uses the active dataset's calculated metrics with a bounded demand multiplier. Field results vary with arrivals, pedestrians, incidents, weather, and physical signal controller settings.",
   });
 }
 
@@ -322,7 +344,11 @@ router.post("/metroflow/upload", (req, res): void => {
   const errors: string[] = [];
   let parsedRows: TrafficRow[] = [];
   let preview: Array<{ timestamp: string; intersectionId: string; approach: string; volume: number }> = [];
-  if (!filename.toLowerCase().endsWith(".csv")) errors.push("Traffic count files must use the .csv format.");
+
+  if (!filename.toLowerCase().endsWith(".csv")) {
+    errors.push("Traffic count files must use the .csv format.");
+  }
+
   if (content) {
     const result = parseCsv(content);
     parsedRows = result.rows;
@@ -331,9 +357,12 @@ router.post("/metroflow/upload", (req, res): void => {
   } else {
     if (!hasRequiredColumns) errors.push("Missing required columns: Timestamp, Intersection_ID, Approach_Direction, Volume.");
     if (rows === 0) errors.push("The uploaded dataset contains no rows.");
-    if (rows > 0 && rows < 100) warnings.push("Small sample detected. Peak windows may be less representative than a 7-day baseline.");
   }
-  if (content && parsedRows.length < 100) warnings.push("Small sample detected. Peak windows may be less representative than a 7-day baseline.");
+
+  if (content && parsedRows.length > 0 && parsedRows.length < 50) {
+    warnings.push("Small sample detected (<50 rows). Results reflect provided sample slice.");
+  }
+
   const analysis = errors.length === 0 && parsedRows.length > 0 ? buildAnalysis(parsedRows, filename) : undefined;
   res.json(UploadMetroflowDataResponse.parse({
     status: errors.length > 0 ? "error" : warnings.length > 0 ? "warning" : "valid",
@@ -353,7 +382,6 @@ router.post("/metroflow/simulate", (req, res): void => {
   }
   res.json(calculateSimulation(parsed.data));
 });
-
 router.post("/metroflow/rationale", (req, res): void => {
   const parsed = GenerateMetroflowRationaleBody.safeParse(req.body);
   if (!parsed.success) {
@@ -367,20 +395,19 @@ router.post("/metroflow/rationale", (req, res): void => {
     : round((1 - input.delayAfter / Math.max(input.delayBefore, 0.1)) * 100, 1);
   const currentSignal = input.currentSignal ?? `${input.phaseBefore}s green`;
   const recommendedSignal = input.recommendedSignal ?? `${input.phaseAfter}s green`;
+
   const markdown = [
     "### Engineering finding",
-    `**Intersection:** ${input.intersectionId}\n\n**Peak period:** ${input.peakWindow}\n\n**Observed demand:** ${input.demand?.toLocaleString() ?? "not supplied"} veh/hr\n\n**Capacity:** ${input.capacity?.toLocaleString() ?? "not supplied"} veh/hr\n\n**V/C:** ${input.vcRatio.toFixed(2)}\n\n**Delay:** ${input.delayBefore.toFixed(1)} s/vehicle\n\n**Queue:** ${input.queue?.toLocaleString() ?? "not supplied"} ft`,
-    "### Why this location?",
-    `The intersection ranked first because its calculated peak-period V/C ratio was **${input.vcRatio.toFixed(2)}** and its estimated delay was **${input.delayBefore.toFixed(1)} seconds per vehicle**. The ranking uses the deterministic V/C sort, with delay and intersection ID used only to resolve ties.`,
-    "### Recommendation",
-    `Current timing: **${currentSignal}**.\n\nRecommended timing: **${recommendedSignal}**.\n\nThe dominant phase green was ${phaseDelta >= 0 ? "increased" : "reduced"} by **${Math.abs(phaseDelta)} seconds** while pedestrian minimums, yellow intervals, and the 120-second cycle guardrail remain protected.`,
-    "### Simulation estimate — not a guarantee",
-    `Current: **${input.simulationBefore?.delay.toFixed(1) ?? input.delayBefore.toFixed(1)}s** delay, **${input.simulationBefore?.queue ?? input.queue ?? "not supplied"}** queue, LOS **${input.simulationBefore?.los ?? "not supplied"}**.\n\nRecommended: **${input.simulationAfter?.delay.toFixed(1) ?? input.delayAfter.toFixed(1)}s** delay, **${input.simulationAfter?.queue ?? "not supplied"}** queue, LOS **${input.simulationAfter?.los ?? "not supplied"}**.\n\nEstimated change: **${delayReduction}% modeled delay reduction**. Safety status: **${input.safetyStatus}**.`,
-    "### Assumptions",
-    (input.assumptions ?? ["Deterministic calculations are based on the active uploaded dataset.", "Traffic volume units and capacity assumptions are documented in the active analysis."]).map((assumption) => `- ${assumption}`).join("\n"),
-    "### Limitations",
-    "This is an offline advisory based on historical or synthetic counts and a simplified queue model. Demand variability, incidents, pedestrian behavior, weather, and field implementation conditions can change actual results.",
+    `**WHAT happened?** Bottleneck identified at **${input.intersectionId}** during peak window **${input.peakWindow}**.\n\n` +
+    `**WHERE?** Intersection **${input.intersectionId}**.\n\n` +
+    `**WHY?** Peak V/C ratio reached **${input.vcRatio.toFixed(2)}** with an estimated baseline delay of **${input.delayBefore.toFixed(1)}s** per vehicle and a queue of **${input.queue ?? 0} ft**.\n\n` +
+    `**WHAT is recommended?** Adjust phase timing from **${currentSignal}** to **${recommendedSignal}** (phase delta: ${phaseDelta >= 0 ? "+" : ""}${phaseDelta}s) while maintaining safety constraints and pedestrian minimums.\n\n` +
+    `**WHAT does the simulation estimate?** Modeled delay reduction of **${delayReduction}%** with safety status **${input.safetyStatus}**.\n\n` +
+    `**WHAT assumptions apply?**\n` +
+    (input.assumptions ?? ["Deterministic analysis based strictly on the uploaded active dataset."]).map((a) => `- ${a}`).join("\n") + "\n\n" +
+    `**WHAT are the limitations?** This is an offline simulated estimate. Field conditions, driver behavior, weather, and live controller constraints may affect actual performance.`,
   ].join("\n\n");
+
   res.json(GenerateMetroflowRationaleResponse.parse({ source: "deterministic-fallback", markdown }));
 });
 
